@@ -32,6 +32,7 @@ Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
     // });
     Route::get('/admin/profile', [UserController::class, 'getProfile']);
     Route::put('/admin/profile', [UserController::class, 'updateProfile']);
+    Route::get('/users', [UserController::class, 'usersList']);
 });
 
 

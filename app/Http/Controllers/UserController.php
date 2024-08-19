@@ -21,6 +21,17 @@ class UserController extends Controller
         $this->userService = $userService;
     }
 
+    public function usersList(): JsonResponse
+    {
+        try {
+            // Call the service method to get the user profile
+            return $this->userService->usersList();
+        } catch (\Exception $e) {
+            // Handle the exception and return an error response
+            return ResponseHelper::error('Failed to retrieve user profile: ' . $e->getMessage(), 500);
+        }
+    }
+
     public function getProfile(): JsonResponse
     {
         try {

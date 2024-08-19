@@ -45,6 +45,9 @@ class UserService
 
         return ResponseHelper::success($user, 'Profile updated successfully');
     }
-
-
+    public function usersList():JsonResponse
+    {
+        $data =  $this->userRepository->usersList();
+        return ResponseHelper::success($data, 'User list fetched successfully.');
+    }
 }
