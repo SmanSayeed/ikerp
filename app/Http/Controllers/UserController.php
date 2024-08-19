@@ -2,10 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\DTOs\UpdateUserDto;
 use App\DTOs\UserDTO;
 use App\Helpers\ResponseHelper;
 use App\Http\Requests\RegisterUserRequest;
+use App\Http\Requests\UpdateProfileRequest;
 use App\Services\UserService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Auth;
+
 
 class UserController extends Controller
 {
@@ -16,17 +21,24 @@ class UserController extends Controller
         $this->userService = $userService;
     }
 
-    public function register(RegisterUserRequest $request)
+    public function getProfile(): JsonResponse
     {
-        $userDTO = new UserDTO(
-            $request->name,
-            $request->email,
-            $request->password,
-            $request->role
-        );
+        try {
+            // Call the service method to get the user profile
+            return $this->userService->getProfile();
+        } catch (\Exception $e) {
+            // Handle the exception and return an error response
+            return ResponseHelper::error('Failed to retrieve user profile: ' . $e->getMessage(), 500);
+        }
+    }
 
-        $user = $this->userService->registerUser($userDTO);
-
-        return ResponseHelper::success($user, 'User registered successfully.');
+    public function updateProfile(UpdateProfileRequest $request): JsonResponse
+    {
+        try {
+            $userDTO = UpdateUserDto::from($request->validated());
+            return $this->userService->updateProfile($userDTO);
+        } catch (\Exception $e) {
+            return ResponseHelper::error('Failed to update profile: ' . $e->getMessage(), 500);
+        }
     }
 }

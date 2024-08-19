@@ -2,33 +2,49 @@
 
 namespace App\Services;
 
+use App\DTOs\UpdateUserDto;
 use App\DTOs\UserDto;
 use App\Repositories\UserRepositoryInterface;
+use Exception;
+use App\Helpers\ResponseHelper;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Auth;
+
 
 class UserService
 {
-    protected $userRepository;
+    public function __construct(private UserRepositoryInterface $userRepository) {}
 
-    public function __construct(UserRepositoryInterface $userRepository)
+
+    /**
+     * Get the authenticated user's profile.
+     *
+     * @return JsonResponse
+     */
+    public function getProfile(): JsonResponse
     {
-        $this->userRepository = $userRepository;
-    }
+        try {
+            $user = Auth::user(); // Retrieve the currently authenticated user
 
-    public function registerUser(UserDto $UserDto)
-    {
-        return $this->userRepository->create($UserDto->toArray());
-    }
+            if (!$user) {
+                return ResponseHelper::error('User not authenticated.', 401);
+            }
 
-    public function loginUser(string $email, string $password)
-    {
-        $user = $this->userRepository->findByEmail($email);
-
-        if (!$user || !\Hash::check($password, $user->password)) {
-            return null;
+            return ResponseHelper::success($user, 'User profile retrieved successfully.');
+        } catch (\Exception $e) {
+            return ResponseHelper::error('Failed to retrieve user profile: ' . $e->getMessage());
         }
-
-        $token = $user->createToken('auth_token')->plainTextToken;
-
-        return ['user' => $user, 'token' => $token];
     }
+
+    public function updateProfile(UpdateUserDto $userDTO)
+    {
+        $user = auth()->user(); // Get the currently authenticated user
+        // Update user details
+        $user->name = $userDTO->name;
+        $user->save();
+
+        return ResponseHelper::success($user, 'Profile updated successfully');
+    }
+
+
 }

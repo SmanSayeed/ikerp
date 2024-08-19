@@ -3,49 +3,107 @@
 namespace App\Http\Controllers;
 
 use App\DTOs\UserDto;
+use App\DTOs\LoginDto;
 use App\Helpers\ResponseHelper;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterUserRequest;
-use App\Services\UserService;
+use App\Services\AuthService;
+use Illuminate\Http\JsonResponse;
+use Exception;
+use Illuminate\Support\Facades\Validator;
+use App\Models\User;
+use Illuminate\Http\Request;
 
 class AuthController extends Controller
 {
-    protected $userService;
-
-    public function __construct(UserService $userService)
+    public function __construct(private AuthService $authService)
     {
-        $this->userService = $userService;
     }
 
-    public function register(RegisterUserRequest $request)
+    public function register(RegisterUserRequest $request): JsonResponse
     {
-        $UserDto = new UserDto(
-            $request->name,
-            $request->email,
-            $request->password,
-            $request->role
-        );
-
-        $user = $this->userService->registerUser($UserDto);
-
-        return ResponseHelper::success($user, 'User registered successfully.');
+        try {
+            $userDto = UserDto::from($request->validated());
+            $user = $this->authService->registerUser($userDto);
+            return ResponseHelper::success($user, 'User registered successfully.');
+        } catch (Exception $e) {
+            // Rethrow the exception for centralized handling
+            throw $e;
+        }
     }
 
-    public function login(LoginRequest $request)
+    public function login(LoginRequest $request): JsonResponse
     {
-        $credentials = $request->only('email', 'password');
-        $loginData = $this->userService->loginUser($credentials['email'], $credentials['password']);
+        try {
+            $loginDto = LoginDto::from($request->validated());
+            $loginData = $this->authService->loginUser($loginDto->email, $loginDto->password);
 
-        if (!$loginData) {
-            return ResponseHelper::error('Invalid credentials', 401);
+            if (!$loginData) {
+                throw new Exception('Invalid credentials');
+            }
+
+            return ResponseHelper::success($loginData, 'Login successful.');
+        } catch (Exception $e) {
+            // Rethrow the exception for centralized handling
+            throw $e;
+        }
+    }
+
+    public function logout(): JsonResponse
+    {
+        try {
+            auth()->user()->tokens()->delete();
+            return ResponseHelper::success(null, 'Logged out successfully.');
+        } catch (Exception $e) {
+            // Rethrow the exception for centralized handling
+            throw $e;
+        }
+    }
+
+    public function verifyEmail(Request $request, User $user)
+    {
+        if (!$request->hasValidSignature()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'The link has expired or is invalid.',
+            ], 400);
         }
 
-        return ResponseHelper::success($loginData, 'Login successful.');
+        if ($user->email_verified_at) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Email is already verified.',
+            ], 400);
+        }
+
+        $user->email_verified_at = now();
+        $user->save();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Email verified successfully.',
+        ]);
     }
 
-    public function logout()
+    public function resendVerificationEmail(Request $request): JsonResponse
     {
-        auth()->user()->tokens()->delete();
-        return ResponseHelper::success(null, 'Logged out successfully.');
+        // Validate the request
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email|exists:users,email',
+        ]);
+
+        // Handle validation failure
+        if ($validator->fails()) {
+            return ResponseHelper::error($validator->errors()->first(), 422);
+        }
+
+        try {
+            $email = $request->email;
+            $user = $this->authService->resendVerificationEmail($email);
+            return ResponseHelper::success(null, 'Verification email resent successfully.');
+        } catch (Exception $e) {
+            return ResponseHelper::error($e->getMessage(), 500);
+        }
     }
+
 }

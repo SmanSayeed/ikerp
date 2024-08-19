@@ -26,8 +26,18 @@ Route::post('register', [AuthController::class, 'register']);
 Route::post('login', [AuthController::class, 'login']);
 Route::post('logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
 Route::post('refresh-token', [RefreshTokenController::class, 'refresh'])->middleware('auth:sanctum');
-Route::middleware(['auth:sanctum', 'role:super_admin'])->group(function () {
-    Route::get('/admin-only', function () {
-        return ResponseHelper::success(null, 'You are a super admin.');
-    });
+Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
+    // Route::get('/admin/profile', function () {
+    //     return ResponseHelper::success(null, 'You are an admin.');
+    // });
+    Route::get('/admin/profile', [UserController::class, 'getProfile']);
+    Route::put('/admin/profile', [UserController::class, 'updateProfile']);
 });
+
+
+Route::get('/verify-email/{user}', [AuthController::class, 'verifyEmail'])->name('verify.email');
+
+// In routes/api.php
+Route::post('/resend-verification-email', [AuthController::class, 'resendVerificationEmail']);
+
+
