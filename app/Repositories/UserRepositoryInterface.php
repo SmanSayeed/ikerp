@@ -12,4 +12,12 @@ interface UserRepositoryInterface
     public function findByEmail(string $email):User;
     public function usersList(array $filters):LengthAwarePaginator;
     public function update(User $user, array $data): User;
+
+    public function softDelete(User $user): void;
+
+    public function findWithTrashed($id): ?User;
+
+    public function getAllUsersWithTrashed();
+    public function findById($id): ?User;
+
 }

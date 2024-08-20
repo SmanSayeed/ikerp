@@ -113,6 +113,31 @@ class UserController extends Controller
         }
     }
 
+    public function getUserById($id): JsonResponse
+    {
+        try {
+            $user = $this->userService->getUserWithTrashed($id);
+
+            if (!$user) {
+                return ResponseHelper::error('User not found.', 404);
+            }
+
+            return ResponseHelper::success($user, 'User retrieved successfully.');
+        } catch (Exception $e) {
+            return ResponseHelper::error($e->getMessage(), 500);
+        }
+    }
+
+    public function getAllUsersWithTrashed(): JsonResponse
+    {
+        try {
+            $users = $this->userService->getAllUsersWithTrashed();
+            return ResponseHelper::success($users, 'Users retrieved successfully.');
+        } catch (Exception $e) {
+            return ResponseHelper::error($e->getMessage(), 500);
+        }
+    }
+
     public function softDeleteUser(User $user): JsonResponse
     {
         try {

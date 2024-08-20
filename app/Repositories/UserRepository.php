@@ -137,4 +137,31 @@ class UserRepository implements UserRepositoryInterface
             throw new \Exception('Failed to update user.');
         }
     }
+
+    public function softDelete(User $user): void
+    {
+        try {
+            // Soft delete the user
+            $user->delete();
+        } catch (\Exception $e) {
+            Log::error('Error soft deleting user: ' . $e->getMessage());
+            throw new \Exception('Failed to soft delete user.');
+        }
+    }
+
+    public function findWithTrashed($id): ?User
+    {
+        return User::withTrashed()->find($id);
+    }
+
+    public function getAllUsersWithTrashed()
+    {
+        return User::withTrashed()->get();
+    }
+
+    public function findById($id): ?User
+    {
+        return User::find($id);
+    }
+
 }

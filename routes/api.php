@@ -21,13 +21,14 @@ use App\Http\Controllers\AuthController;
 //     return $request->user();
 // });
 
-Route::get('/users', [UserController::class, 'usersList']);
-Route::put('users/{user}/email-verification', [UserController::class, 'updateEmailVerification']);
+
 
 Route::put('users/{user}', [UserController::class, 'updateUserInfo']);
 
+Route::get('/users', [UserController::class, 'usersList']);
+
 Route::post('register', [AuthController::class, 'register']);
-Route::post('login', [AuthController::class, 'login']);
+Route::post('login', [AuthController::class, 'login'])->middleware('check.user.status.email');;
 Route::post('logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
 Route::post('refresh-token', [RefreshTokenController::class, 'refresh'])->middleware('auth:sanctum');
 Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
@@ -36,8 +37,7 @@ Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
     // });
     Route::get('/admin/profile', [UserController::class, 'getProfile']);
     Route::put('/admin/profile', [UserController::class, 'updateProfile']);
-
-
+    Route::put('users/{user}/email-verification', [UserController::class, 'updateEmailVerification']);
     Route::put('users/{user}/status', [UserController::class, 'updateStatus']);
     Route::delete('users/{user}/soft-delete', [UserController::class, 'softDeleteUser']);
     Route::delete('users/{user}/hard-delete', [UserController::class, 'hardDeleteUser']);

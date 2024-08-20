@@ -118,15 +118,31 @@ class UserService
         }
     }
 
-    public function softDeleteUser(User $user): JsonResponse
+    public function getUserById($id): ?User
+    {
+        return $this->userRepository->findById($id);
+    }
+
+    public function softDeleteUser(User $user): void
     {
         try {
-            $user->delete();
-            return ResponseHelper::success(null, 'User soft deleted successfully.');
+            $this->userRepository->softDelete($user);
         } catch (Exception $e) {
-            return ResponseHelper::error('Failed to soft delete user: ' . $e->getMessage(), 500);
+            throw new Exception('Failed to soft delete user: ' . $e->getMessage());
         }
     }
+
+    public function getUserWithTrashed($id): ?User
+    {
+        return $this->userRepository->findWithTrashed($id);
+    }
+
+    public function getAllUsersWithTrashed()
+    {
+        return $this->userRepository->getAllUsersWithTrashed();
+    }
+
+
 
     public function hardDeleteUser(User $user): JsonResponse
     {
