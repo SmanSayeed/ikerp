@@ -10,5 +10,6 @@ interface UserRepositoryInterface
 {
     public function create(array $data):User;
     public function findByEmail(string $email):User;
-    public function usersList():LengthAwarePaginator;
+    public function usersList(array $filters):LengthAwarePaginator;
+    public function update(User $user, array $data): User;
 }

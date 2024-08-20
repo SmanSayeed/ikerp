@@ -21,6 +21,10 @@ use App\Http\Controllers\AuthController;
 //     return $request->user();
 // });
 
+Route::get('/users', [UserController::class, 'usersList']);
+Route::put('users/{user}/email-verification', [UserController::class, 'updateEmailVerification']);
+
+Route::put('users/{user}', [UserController::class, 'updateUserInfo']);
 
 Route::post('register', [AuthController::class, 'register']);
 Route::post('login', [AuthController::class, 'login']);
@@ -32,7 +36,15 @@ Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
     // });
     Route::get('/admin/profile', [UserController::class, 'getProfile']);
     Route::put('/admin/profile', [UserController::class, 'updateProfile']);
-    Route::get('/users', [UserController::class, 'usersList']);
+
+
+    Route::put('users/{user}/status', [UserController::class, 'updateStatus']);
+    Route::delete('users/{user}/soft-delete', [UserController::class, 'softDeleteUser']);
+    Route::delete('users/{user}/hard-delete', [UserController::class, 'hardDeleteUser']);
+    Route::put('users/{user}/password', [UserController::class, 'updateUserPassword']);
+
+
+
 });
 
 

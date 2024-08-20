@@ -27,8 +27,7 @@ class AuthController extends Controller
             $user = $this->authService->registerUser($userDto);
             return ResponseHelper::success($user, 'User registered successfully.');
         } catch (Exception $e) {
-            // Rethrow the exception for centralized handling
-            throw $e;
+            return ResponseHelper::error($e->getMessage(), 500);
         }
     }
 
@@ -39,13 +38,12 @@ class AuthController extends Controller
             $loginData = $this->authService->loginUser($loginDto->email, $loginDto->password);
 
             if (!$loginData) {
-                throw new Exception('Invalid credentials');
+                return ResponseHelper::error('Invalid credentials', 401);
             }
 
             return ResponseHelper::success($loginData, 'Login successful.');
         } catch (Exception $e) {
-            // Rethrow the exception for centralized handling
-            throw $e;
+            return ResponseHelper::error($e->getMessage(), 500);
         }
     }
 
@@ -55,34 +53,28 @@ class AuthController extends Controller
             auth()->user()->tokens()->delete();
             return ResponseHelper::success(null, 'Logged out successfully.');
         } catch (Exception $e) {
-            // Rethrow the exception for centralized handling
-            throw $e;
+            return ResponseHelper::error($e->getMessage(), 500);
         }
     }
 
-    public function verifyEmail(Request $request, User $user)
+    public function verifyEmail(Request $request, User $user): JsonResponse
     {
-        if (!$request->hasValidSignature()) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'The link has expired or is invalid.',
-            ], 400);
+        try {
+            if (!$request->hasValidSignature()) {
+                return ResponseHelper::error('The link has expired or is invalid.', 400);
+            }
+
+            if ($user->email_verified_at) {
+                return ResponseHelper::error('Email is already verified.', 400);
+            }
+
+            $user->email_verified_at = now();
+            $user->save();
+
+            return ResponseHelper::success(null, 'Email verified successfully.');
+        } catch (Exception $e) {
+            return ResponseHelper::error($e->getMessage(), 500);
         }
-
-        if ($user->email_verified_at) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Email is already verified.',
-            ], 400);
-        }
-
-        $user->email_verified_at = now();
-        $user->save();
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Email verified successfully.',
-        ]);
     }
 
     public function resendVerificationEmail(Request $request): JsonResponse
@@ -106,4 +98,5 @@ class AuthController extends Controller
         }
     }
 
+    
 }
