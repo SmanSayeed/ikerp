@@ -19,6 +19,7 @@ return new class extends Migration
             $table->enum('role', ['admin', 'sub_admin', 'service_provider', 'client']);
             $table->timestamp('email_verified_at')->nullable();
             $table->boolean('status')->default(true); // Status field
+            $table->softDeletes();
             $table->timestamps();
         });
     }

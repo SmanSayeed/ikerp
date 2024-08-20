@@ -28,7 +28,8 @@ Route::put('users/{user}', [UserController::class, 'updateUserInfo']);
 Route::get('/users', [UserController::class, 'usersList']);
 
 Route::post('register', [AuthController::class, 'register']);
-Route::post('login', [AuthController::class, 'login'])->middleware('check.user.status.email');;
+Route::post('login', [AuthController::class, 'login'])->middleware('check.user.status.email');
+;
 Route::post('logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
 Route::post('refresh-token', [RefreshTokenController::class, 'refresh'])->middleware('auth:sanctum');
 Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
@@ -42,6 +43,10 @@ Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
     Route::delete('users/{user}/soft-delete', [UserController::class, 'softDeleteUser']);
     Route::delete('users/{user}/hard-delete', [UserController::class, 'hardDeleteUser']);
     Route::put('users/{user}/password', [UserController::class, 'updateUserPassword']);
+
+    Route::get('users/soft-deleted/{id}', [UserController::class, 'getUserById']);
+    Route::get('users/soft-deleted', [UserController::class, 'getAllSoftDeletedUsers']);
+    Route::put('users/{id}/restore', [UserController::class, 'restoreUser']);
 
 
 

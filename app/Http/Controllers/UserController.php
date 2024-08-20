@@ -128,6 +128,18 @@ class UserController extends Controller
         }
     }
 
+    public function restoreUser($id)
+{
+    $user = User::onlyTrashed()->find($id);
+
+    if ($user) {
+        $user->restore();
+        return ResponseHelper::success($user, 'User restored successfully.');
+    } else {
+        return ResponseHelper::error('User not found.', 404);
+    }
+}
+
     public function getAllUsersWithTrashed(): JsonResponse
     {
         try {
