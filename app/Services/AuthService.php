@@ -17,6 +17,11 @@ class AuthService
     public function registerUser(UserDto $userDto)
     {
         try {
+               // Make sure $userDto has valid data and check for null values
+               if (is_null($userDto->email) || is_null($userDto->password)) {
+                throw new \Exception('Invalid user data');
+            }
+
             $userData = $userDto->toArray();
             $userData['password'] = bcrypt($userData['password']);
 
@@ -46,7 +51,7 @@ class AuthService
                 throw new Exception('User not found.');
             }
 
-            if (!\Hash::check($password, $user->password)) {
+            if (!\Illuminate\Support\Facades\Hash::check($password, $user->password)) {
                 throw new Exception('Invalid credentials.');
             }
 
