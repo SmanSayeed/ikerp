@@ -36,7 +36,8 @@ class ResponseHelper
         return response()->json([
             'status' => 'error',
             'message' => $message,
-            'data' => $errors // Validation errors are placed here
+            'data' => $errors, // Validation errors are placed here
+            'status_code'=>$statusCode
         ], $statusCode);
     }
 }

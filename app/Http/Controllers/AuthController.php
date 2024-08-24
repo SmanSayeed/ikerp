@@ -13,6 +13,7 @@ use Exception;
 use Illuminate\Support\Facades\Validator;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Redirect;
 
 class AuthController extends Controller
 {
@@ -25,7 +26,7 @@ class AuthController extends Controller
         try {
             $userDto = UserDto::from($request->validated());
             $user = $this->authService->registerUser($userDto);
-            return ResponseHelper::success($user, 'User registered successfully.');
+            return ResponseHelper::success($user, 'Registered and verification email sent. Please verify your email.');
         } catch (Exception $e) {
             return ResponseHelper::error($e->getMessage(), 500);
         }
@@ -57,23 +58,46 @@ class AuthController extends Controller
         }
     }
 
-    public function verifyEmail(Request $request, User $user): JsonResponse
+    // public function verifyEmail(Request $request, User $user): JsonResponse
+    // {
+    //     try {
+    //         if (!$request->hasValidSignature()) {
+    //             return ResponseHelper::error('The link has expired or is invalid.', 400);
+    //         }
+
+    //         if ($user->email_verified_at) {
+    //             return ResponseHelper::error('Email is already verified.', 400);
+    //         }
+
+    //         $user->email_verified_at = now();
+    //         $user->save();
+
+    //         return ResponseHelper::success(null, 'Email verified successfully.');
+    //     } catch (Exception $e) {
+    //         return ResponseHelper::error($e->getMessage(), 500);
+    //     }
+    // }
+
+    public function verifyEmail($userId)
     {
         try {
-            if (!$request->hasValidSignature()) {
-                return ResponseHelper::error('The link has expired or is invalid.', 400);
-            }
+            $user = User::findOrFail($userId);
+
+            // Retrieve frontend URL from environment variables
+            $frontendUrl = env('FRONTEND_URL', 'http://localhost:5173') . '/verify-email';
 
             if ($user->email_verified_at) {
-                return ResponseHelper::error('Email is already verified.', 400);
+                return Redirect::to("$frontendUrl?status=error&message=Email already verified");
             }
 
+            // Mark the email as verified
             $user->email_verified_at = now();
             $user->save();
 
-            return ResponseHelper::success(null, 'Email verified successfully.');
+            return Redirect::to("$frontendUrl?status=success&message=Email verified successfully");
         } catch (Exception $e) {
-            return ResponseHelper::error($e->getMessage(), 500);
+            // Handle exception and redirect with an error message
+            return Redirect::to("$frontendUrl?status=error&message=Verification failed");
         }
     }
 
@@ -98,5 +122,5 @@ class AuthController extends Controller
         }
     }
 
-    
+
 }

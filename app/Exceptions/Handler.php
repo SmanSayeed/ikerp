@@ -34,6 +34,8 @@ class Handler extends ExceptionHandler
 
     public function render($request, Throwable $exception): JsonResponse
     {
+
+
         if ($exception instanceof ValidationException) {
             return ResponseHelper::error('Validation failed', 422, $exception->errors());
         }

@@ -67,7 +67,7 @@ class AuthService
 
             return ['user' => $user, 'token' => $token];
         } catch (Exception $e) {
-            throw new Exception('Login failed: ' . $e->getMessage());
+            throw new Exception($e->getMessage());
         }
     }
 
