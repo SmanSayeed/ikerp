@@ -4,16 +4,21 @@ namespace App\Http\Controllers;
 
 use App\DTOs\UserDto;
 use App\DTOs\LoginDto;
+use App\Events\SendEmail;
 use App\Helpers\ResponseHelper;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterUserRequest;
 use App\Services\AuthService;
 use Illuminate\Http\JsonResponse;
 use Exception;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Validator;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
+use App\Models\PasswordResetToken;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {

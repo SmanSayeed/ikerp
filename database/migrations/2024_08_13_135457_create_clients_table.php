@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->string('address')->nullable();
             $table->string('phone')->nullable();
+            $table->enum('client_type', ['buyer', 'seller', 'both']);
             $table->date('payment_due_date')->nullable();
             $table->decimal('vat_slab', 5, 2)->nullable();
             $table->text('gbs_information')->nullable();
