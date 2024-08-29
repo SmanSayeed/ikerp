@@ -20,10 +20,7 @@ use App\Services\AuthService;// Import UserService
 use Exception;
 use Illuminate\Support\Facades\Validator;
 use App\Models\User;
-use Illuminate\Support\Facades\Redirect;
-use App\Models\PasswordResetToken;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
+
 
 
 
@@ -195,82 +192,6 @@ class UserController extends Controller
         }
     }
 
-    public function sendPasswordResetEmail(Request $request): JsonResponse
-{
-    // Validate the email input
-    $validated = $request->validate([
-        'email' => 'required|email|exists:users,email',
-    ]);
 
-    try {
-        $user = User::where('email', $validated['email'])->first();
-
-        // Generate a reset token
-        $token = Str::random(60);
-
-        // Save the token in the database
-        DB::table('password_reset_tokens')->updateOrInsert(
-            ['email' => $validated['email']],
-            ['token' => $token, 'created_at' => Carbon::now()]
-        );
-
-        // Prepare email data
-        $resetUrl = env('FRONTEND_URL') . "/reset-password?token=$token&email={$validated['email']}";
-        $emailData = [
-            'name' => $user->name,
-            'reset_url' => $resetUrl,
-        ];
-
-        // Trigger the email event
-        event(new SendEmail('password_reset', $emailData, $validated['email']));
-
-        return ResponseHelper::success(null, 'Password reset link sent successfully.');
-    } catch (Exception $e) {
-        return ResponseHelper::error('Failed to send password reset email: ' . $e->getMessage(), 500);
-    }
-}
-
-    public function resetPasswordByEmail(UpdatePasswordByEmailRequest $request)
-{
-    $validated = $request->validated();
-
-    try {
-        // Find the token and email in the password reset tokens table
-        $resetToken = \DB::table('password_reset_tokens')
-            ->where('email', $validated['email'])
-            ->where('token', $validated['token'])
-            ->where('is_valid', true) // Check if the token is still valid
-            ->first();
-
-        if (!$resetToken) {
-            return ResponseHelper::error('Invalid token, email, or the token has already been used.', 400);
-        }
-
-        // Check if the token is expired (assuming a token expiration time, e.g., 60 minutes)
-        if (\Carbon\Carbon::parse($resetToken->created_at)->addMinutes(60)->isPast()) {
-            return ResponseHelper::error('Token has expired.', 400);
-        }
-
-        // Get the user by email
-        $user = User::where('email', $validated['email'])->first();
-        if (!$user) {
-            return ResponseHelper::error('User not found.', 404);
-        }
-
-        // Update the user's password
-        $user->password = bcrypt($validated['password']);
-        $user->save();
-
-        // Mark the token as invalid instead of deleting it
-        \DB::table('password_reset_tokens')
-            ->where('email', $validated['email'])
-            ->where('token', $validated['token'])
-            ->update(['is_valid' => false]);
-
-        return ResponseHelper::success(null, 'Password reset successfully.');
-    } catch (Exception $e) {
-        return ResponseHelper::error('Failed to reset password: ' . $e->getMessage(), 500);
-    }
-}
 
 }

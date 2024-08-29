@@ -23,14 +23,12 @@ use App\Http\Controllers\AuthController;
 
 
 
-Route::put('users/{user}', [UserController::class, 'updateUserInfo']);
 
-Route::get('/users', [UserController::class, 'usersList']);
 
 Route::post('register', [AuthController::class, 'register']);
 Route::post('login', [AuthController::class, 'login'])->middleware('check.user.status.email');
 ;
-Route::post('logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
+
 Route::post('refresh-token', [RefreshTokenController::class, 'refresh'])->middleware('auth:sanctum');
 Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
     // Route::get('/admin/profile', function () {
@@ -49,6 +47,11 @@ Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
     Route::put('users/{id}/restore', [UserController::class, 'restoreUser']);
 
 
+    Route::put('users/{user}', [UserController::class, 'updateUserInfo']);
+
+    Route::get('/users', [UserController::class, 'usersList']);
+
+    Route::post('logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
 
 });
 
@@ -58,4 +61,8 @@ Route::get('/verify-email/{user}', [AuthController::class, 'verifyEmail'])->name
 // In routes/api.php
 Route::post('/resend-verification-email', [AuthController::class, 'resendVerificationEmail']);
 
+
+/** Reset password */
+Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+Route::post('/reset-password-by-email', [AuthController::class, 'resetPasswordByEmail']);
 
