@@ -34,27 +34,29 @@ Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
     // Route::get('/admin/profile', function () {
     //     return ResponseHelper::success(null, 'You are an admin.');
     // });
-    Route::get('/admin/profile', [UserController::class, 'getProfile']);
-    Route::put('/admin/profile', [UserController::class, 'updateProfile']);
+    Route::get('/user/profile', [UserController::class, 'getProfile']);
+    Route::put('/user/profile', [UserController::class, 'updateProfile']);
     Route::put('users/{user}/email-verification', [UserController::class, 'updateEmailVerification']);
     Route::put('users/{user}/status', [UserController::class, 'updateStatus']);
     Route::delete('users/{user}/soft-delete', [UserController::class, 'softDeleteUser']);
     Route::delete('users/{user}/hard-delete', [UserController::class, 'hardDeleteUser']);
     Route::put('users/{user}/password', [UserController::class, 'updateUserPassword']);
 
+    Route::get('users/profile/{id}', [UserController::class, 'getUserById']);
+
     Route::get('users/soft-deleted/{id}', [UserController::class, 'getUserById']);
     Route::get('users/soft-deleted', [UserController::class, 'getAllSoftDeletedUsers']);
     Route::put('users/{id}/restore', [UserController::class, 'restoreUser']);
+
 
 
     Route::put('users/{user}', [UserController::class, 'updateUserInfo']);
 
     Route::get('/users', [UserController::class, 'usersList']);
 
-    Route::post('logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
-
 });
 
+Route::post('logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
 
 Route::get('/verify-email/{user}', [AuthController::class, 'verifyEmail'])->name('verify.email');
 
