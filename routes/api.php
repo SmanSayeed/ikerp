@@ -1,8 +1,10 @@
 <?php
 
 use App\Helpers\ResponseHelper;
+use App\Http\Controllers\Admin\AdminController;
+use App\Http\Controllers\Client\ClientController;
 use App\Http\Controllers\RefreshTokenController;
-use App\Http\Controllers\UserController;
+use App\Http\Controllers\Admin\AdminManagesUserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
@@ -34,36 +36,35 @@ Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
     // Route::get('/admin/profile', function () {
     //     return ResponseHelper::success(null, 'You are an admin.');
     // });
-    Route::get('/user/profile', [UserController::class, 'getProfile']);
-    Route::put('/user/profile', [UserController::class, 'updateProfile']);
-    Route::put('users/{user}/email-verification', [UserController::class, 'updateEmailVerification']);
-    Route::put('users/{user}/status', [UserController::class, 'updateStatus']);
-    Route::delete('users/{user}/soft-delete', [UserController::class, 'softDeleteUser']);
-    Route::delete('users/{user}/hard-delete', [UserController::class, 'hardDeleteUser']);
-    Route::put('users/{user}/password', [UserController::class, 'updateUserPassword']);
+    Route::get('/user/profile', [AdminController::class, 'getProfile']);
+    Route::put('/user/profile', [AdminController::class, 'updateProfile']);
 
-    Route::get('users/profile/{id}', [UserController::class, 'getUserById']);
+    Route::put('users/{user}/email-verification', [AdminManagesUserController::class, 'updateEmailVerification']);
+    Route::put('users/{user}/status', [AdminManagesUserController::class, 'updateStatus']);
+    Route::delete('users/{user}/soft-delete', [AdminManagesUserController::class, 'softDeleteUser']);
+    Route::delete('users/{user}/hard-delete', [AdminManagesUserController::class, 'hardDeleteUser']);
+    Route::put('users/{user}/password', [AdminManagesUserController::class, 'updateUserPassword']);
 
-    Route::get('users/soft-deleted/{id}', [UserController::class, 'getUserById']);
-    Route::get('users/soft-deleted', [UserController::class, 'getAllSoftDeletedUsers']);
-    Route::put('users/{id}/restore', [UserController::class, 'restoreUser']);
+    Route::get('users/profile/{id}', [AdminManagesUserController::class, 'getUserById']);
 
-
-
-    Route::put('users/{user}', [UserController::class, 'updateUserInfo']);
-
-    Route::get('/users', [UserController::class, 'usersList']);
-
+    Route::get('users/soft-deleted/{id}', [AdminManagesUserController::class, 'getUserById']);
+    Route::get('users/soft-deleted', [AdminManagesUserController::class, 'getAllSoftDeletedUsers']);
+    Route::put('users/{id}/restore', [AdminManagesUserController::class, 'restoreUser']);
+    Route::put('users/{user}', [AdminManagesUserController::class, 'updateUserInfo']);
+    Route::get('/users', [AdminManagesUserController::class, 'usersList']);
 });
 
+Route::middleware(['auth:sanctum', 'role:client'])->group(function () {
+    Route::get('/client/profile', [ClientController::class, 'getClientProfile']);
+    Route::put('/client/profile', [ClientController::class, 'updateClientProfile']);
+});
+
+
+
 Route::post('logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
-
 Route::get('/verify-email/{user}', [AuthController::class, 'verifyEmail'])->name('verify.email');
-
 // In routes/api.php
 Route::post('/resend-verification-email', [AuthController::class, 'resendVerificationEmail']);
-
-
 /** Reset password */
 Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
 Route::post('/reset-password-by-email', [AuthController::class, 'resetPasswordByEmail']);

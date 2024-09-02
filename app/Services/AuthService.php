@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\DTOs\ClientDto;
 use App\DTOs\UserDto;
 use App\Models\User;
 use App\Repositories\UserRepositoryInterface;
@@ -41,6 +42,54 @@ class AuthService
             throw new Exception('Failed to register user: ' . $e->getMessage());
         }
     }
+
+    public function registerClient(ClientDto $clientDto)
+    {
+        try {
+            // Create user in the users table
+            $userData = [
+                'name' => $clientDto->name,
+                'email' => $clientDto->email,
+                'password' => bcrypt($clientDto->password),
+                'role' => $clientDto->role,
+                'status' => $clientDto->status,
+            ];
+
+            $user = $this->userRepository->create($userData);
+
+            // Create client in the clients table
+            $clientData = [
+                'name' => $clientDto->name,
+                'email' => $clientDto->email,
+                'address' => $clientDto->address ?? null,
+                'phone' => $clientDto->phone ?? null,
+                'client_type' => $clientDto->client_type,
+                'payment_due_date' => $clientDto->payment_due_date ?? null,
+                'vat_slab' => $clientDto->vat_slab ?? null,
+                'gbs_information' => $clientDto->gbs_information ?? null,
+                'is_vip' => $clientDto->is_vip ?? false,
+                'vip_discount' => $clientDto->vip_discount ?? null,
+                'parent_client_id' => $clientDto->parent_client_id ?? null,
+                'user_id' => $user->id,
+            ];
+
+            $client = \App\Models\Client::create($clientData);
+
+            // Send email verification
+            $verificationUrl = $this->generateVerificationUrl($user);
+            $emailData = [
+                'name' => $user->name,
+                'verification_url' => $verificationUrl
+            ];
+            event(new SendEmail('verification', $emailData, $user->email));
+
+            return $client;
+        } catch (Exception $e) {
+            throw new Exception('Failed to register client: ' . $e->getMessage());
+        }
+    }
+
+
 
     public function loginUser(string $email, string $password)
     {

@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\DTOs\ClientDto;
 use App\DTOs\UserDto;
 use App\DTOs\LoginDto;
 use App\Events\SendEmail;
 use App\Helpers\ResponseHelper;
 use App\Http\Requests\LoginRequest;
+use App\Http\Requests\RegisterClientRequest;
 use App\Http\Requests\RegisterUserRequest;
 use App\Http\Requests\UpdatePasswordByEmailRequest;
 use App\Services\AuthService;
@@ -34,6 +36,17 @@ class AuthController extends Controller
             $userDto = UserDto::from($request->validated());
             $user = $this->authService->registerUser($userDto);
             return ResponseHelper::success($user, 'Registered and verification email sent. Please verify your email.');
+        } catch (Exception $e) {
+            return ResponseHelper::error($e->getMessage(), 500);
+        }
+    }
+
+    public function registerClient(RegisterClientRequest $request): JsonResponse
+    {
+        try {
+            $clientDto = ClientDto::from($request->validated());
+            $client = $this->authService->registerClient($clientDto);
+            return ResponseHelper::success($client, 'Registered and verification email sent. Please verify your email.');
         } catch (Exception $e) {
             return ResponseHelper::error($e->getMessage(), 500);
         }

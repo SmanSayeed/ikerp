@@ -1,11 +1,12 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
 
 use App\DTOs\UpdateUserDto;
 use App\DTOs\UserDTO;
 use App\Events\SendEmail;
 use App\Helpers\ResponseHelper;
+use App\Http\Controllers\Controller;
 use App\Http\Requests\RegisterUserRequest;
 use App\Http\Requests\UpdatePasswordByEmailRequest;
 use App\Http\Requests\UpdateProfileRequest;
@@ -24,7 +25,7 @@ use App\Models\User;
 
 
 
-class UserController extends Controller
+class AdminManagesUserController extends Controller
 {
     protected $userService;
 
