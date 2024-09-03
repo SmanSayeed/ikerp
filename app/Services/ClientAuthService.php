@@ -23,10 +23,8 @@ class ClientAuthService
             $data = $clientDto->toArray();
             $data['password'] = bcrypt($data['password']);
             $client = Client::create($data);
-
             // Generate token
             $token = $client->createToken('client-auth-token')->plainTextToken;
-
             return ['client' => $client, 'token' => $token];
         } catch (Exception $e) {
             throw new Exception('Registration failed: ' . $e->getMessage());
