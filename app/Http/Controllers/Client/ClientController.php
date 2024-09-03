@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers\Client;
 
+use App\DTOs\UpdateClientDto;
 use App\DTOs\UpdateUserDto;
 use App\Helpers\ResponseHelper;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\UpdateClientRequest;
 use App\Http\Requests\UpdateProfileRequest;
+use App\Http\Resources\ClientResource;
 use App\Services\ClientService;
 use Illuminate\Http\JsonResponse;
 use Exception;
@@ -27,11 +30,10 @@ class ClientController extends Controller
     public function getClientProfile(): JsonResponse
     {
         try {
-            // Call the service method to get the user profile
-            return $this->clientService->getProfile();
+            $client = $this->clientService->getProfile();
+            return ResponseHelper::success(new ClientResource($client), 'Client profile retrieved successfully.');
         } catch (Exception $e) {
-            // Handle the exception and return an error response
-            return ResponseHelper::error('Failed to retrieve user profile: ' . $e->getMessage(), 500);
+            return ResponseHelper::error('Failed to retrieve client profile: ' . $e->getMessage(), 500);
         }
     }
 
@@ -41,14 +43,12 @@ class ClientController extends Controller
      * @param UpdateProfileRequest $request
      * @return JsonResponse
      */
-    public function updateClientProfile(UpdateProfileRequest $request): JsonResponse
+    public function updateClientProfile(UpdateClientRequest $request): JsonResponse
     {
         try {
-            // Create a DTO from validated request data
-            $userDTO = UpdateUserDto::from($request->validated());
-
-            // Call the service method to update the profile
-            return $this->clientService->updateProfile($userDTO);
+            $clientDTO = UpdateClientDto::from($request->validated());
+            $client = $this->clientService->updateProfile($clientDTO);
+            return ResponseHelper::success(new ClientResource($client), 'Profile updated successfully.');
         } catch (Exception $e) {
             return ResponseHelper::error('Failed to update profile: ' . $e->getMessage(), 500);
         }

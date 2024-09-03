@@ -3,22 +3,18 @@
 namespace App\Services;
 
 use App\DTOs\UpdateClientDto;
-use App\Http\Resources\ClientResource;
+use App\Http\Resources\AdminManagesClientResource; // Use correct resource class
 use App\Models\Client;
-use Illuminate\Auth\Events\Authenticated;
-use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Http\JsonResponse;
 use App\Helpers\ResponseHelper;
-use Illuminate\Support\Facades\Auth;
-use Exception;
 use Illuminate\Support\Facades\Hash;
+use Exception;
 
-class ClientService
+class AdminManagesClientService
 {
     public function clientsList(array $filters): JsonResponse
     {
         try {
-            // Apply filters and retrieve clients from the database
             $query = Client::query();
 
             if (isset($filters['keyword'])) {
@@ -35,7 +31,7 @@ class ClientService
             }
 
             if (isset($filters['role'])) {
-                $query->where('is_seller', $filters['role']); // Adjust role to is_seller
+                $query->where('is_seller', $filters['role']);
             }
 
             $orderBy = $filters['order_by'] ?? 'id';
@@ -51,42 +47,12 @@ class ClientService
         }
     }
 
-    public function getProfile(): ?Authenticatable
-    {
-        try {
-            $client = Auth::user();
-
-            if (!$client) {
-                return null;
-            }
-
-            return $client;
-        } catch (Exception $e) {
-            return null;
-        }
-    }
-
-    public function updateProfile(UpdateClientDto $clientDTO): ?Authenticatable
-    {
-        try {
-            $client = Auth::user();
-            if (!$client) {
-                return null;
-            }
-
-            $client->update($clientDTO->toArray());
-            return $client;
-        } catch (Exception $e) {
-            return null;
-        }
-    }
-
     public function updateEmailVerification(Client $client, bool $verified): JsonResponse
     {
         try {
             $client->email_verified_at = $verified ? now() : null;
             $client->save();
-            return ResponseHelper::success(new ClientResource($client), 'Email verification updated successfully.');
+            return ResponseHelper::success(new AdminManagesClientResource($client), 'Email verification updated successfully.');
         } catch (Exception $e) {
             return ResponseHelper::error('Failed to update email verification: ' . $e->getMessage(), 500);
         }
@@ -97,7 +63,7 @@ class ClientService
         try {
             $client->status = $status;
             $client->save();
-            return ResponseHelper::success(new ClientResource($client), 'Client status updated successfully.');
+            return ResponseHelper::success(new AdminManagesClientResource($client), 'Client status updated successfully.');
         } catch (Exception $e) {
             return ResponseHelper::error('Failed to update client status: ' . $e->getMessage(), 500);
         }
@@ -107,7 +73,7 @@ class ClientService
     {
         try {
             $client->update($data);
-            return ResponseHelper::success(new ClientResource($client), 'Client information updated successfully.');
+            return ResponseHelper::success(new AdminManagesClientResource($client), 'Client information updated successfully.');
         } catch (Exception $e) {
             return ResponseHelper::error('Failed to update client information: ' . $e->getMessage(), 500);
         }
@@ -117,6 +83,8 @@ class ClientService
     {
         return Client::withTrashed()->find($id);
     }
+
+   
 
     public function getAllClientsWithTrashed(): JsonResponse
     {
@@ -159,3 +127,4 @@ class ClientService
         }
     }
 }
+
