@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Client;
+namespace App\Services;
 
 use App\DTOs\ClientDto;
 use App\Models\Client;

@@ -2,6 +2,7 @@
 namespace Database\Seeders;
 
 use App\Models\User;
+use App\Models\Client;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -28,22 +29,20 @@ class UserSeeder extends Seeder
             'email_verified_at' => now(), // Ensures email is verified
         ]);
 
-        User::create([
+        Client::create([
             'name' => 'Client User',
             'email' => 'client@example.com',
             'password' => Hash::make('password'),
-            'role' => 'client',
             'status' => true,
             'email_verified_at' => now(), // Ensures email is verified
         ]);
 
         // Create multiple users with email not verified
         for ($i = 1; $i <= 10; $i++) {
-            User::create([
+            Client::create([
                 'name' => "Client User $i",
                 'email' => "client$i@example.com",
                 'password' => Hash::make('password'),
-                'role' => 'client',
                 'status' => true,
                 'email_verified_at' => null, // Email not verified
             ]);
@@ -51,11 +50,10 @@ class UserSeeder extends Seeder
 
         // Create multiple users with email verified
         for ($i = 11; $i <= 20; $i++) {
-            User::create([
+            Client::create([
                 'name' => "Client User $i",
                 'email' => "client$i@example.com",
                 'password' => Hash::make('password'),
-                'role' => 'client',
                 'status' => true,
                 'email_verified_at' => now(), // Email verified
             ]);
@@ -63,11 +61,10 @@ class UserSeeder extends Seeder
 
         // Create multiple users with email verified but status inactive
         for ($i = 21; $i <= 30; $i++) {
-            User::create([
+            Client::create([
                 'name' => "Client User $i",
                 'email' => "client$i@example.com",
                 'password' => Hash::make('password'),
-                'role' => 'client',
                 'status' => false, // Inactive
                 'email_verified_at' => now(), // Email verified
             ]);

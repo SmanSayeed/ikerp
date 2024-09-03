@@ -27,6 +27,7 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->boolean('status')->default(true);
             $table->foreignId('parent_client_id')->nullable()->constrained('clients')->onDelete('cascade');
+            $table->softDeletes();
             $table->timestamps();
         });
     }

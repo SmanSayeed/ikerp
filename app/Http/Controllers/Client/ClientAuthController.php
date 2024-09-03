@@ -8,7 +8,7 @@ use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterClientRequest;
 use App\Http\Requests\UpdatePasswordRequest;
 use App\Http\Resources\ClientResource;
-use App\Services\Client\ClientAuthService;
+use App\Services\ClientAuthService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Helpers\ResponseHelper;
