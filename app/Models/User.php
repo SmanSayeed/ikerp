@@ -30,11 +30,6 @@ class User extends Authenticatable
         return $this->hasOne(ServiceProvider::class);
     }
 
-    public function clients()
-    {
-        return $this->hasMany(Client::class);
-    }
-
     public function hasRole($role)
 {
     return $this->role === $role;

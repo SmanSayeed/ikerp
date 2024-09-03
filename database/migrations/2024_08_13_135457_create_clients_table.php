@@ -17,7 +17,8 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->string('address')->nullable();
             $table->string('phone')->nullable();
-            $table->enum('client_type', ['buyer', 'seller', 'both']);
+            $table->string('password');
+            $table->boolean('is_seller')->default(false);
             $table->date('payment_due_date')->nullable();
             $table->decimal('vat_slab', 5, 2)->nullable();
             $table->text('gbs_information')->nullable();
@@ -26,7 +27,6 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->boolean('status')->default(true);
             $table->foreignId('parent_client_id')->nullable()->constrained('clients')->onDelete('cascade');
-            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->timestamps();
         });
     }

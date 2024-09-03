@@ -1,10 +1,12 @@
 <?php
 namespace App\Models;
-
-use Illuminate\Database\Eloquent\Model;
-
-class Client extends Model
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Notifications\Notifiable;
+class Client extends Authenticatable
 {
+    use HasApiTokens, Notifiable, SoftDeletes;
     protected $fillable = [
         'name', 'email', 'address', 'phone', 'payment_due_date', 'vat_slab', 'gbs_information', 'is_vip', 'vip_discount', 'email_verified_at', 'status', 'parent_client_id', 'user_id', 'type'
     ];
@@ -15,6 +17,10 @@ class Client extends Model
            'email_verified_at' => 'datetime',
        ];
 
+       protected $hidden = [
+        'password', 'remember_token',
+        ];
+
        public function parentClient()
        {
            return $this->belongsTo(Client::class, 'parent_client_id');
@@ -23,11 +29,6 @@ class Client extends Model
        public function childrenClients()
        {
            return $this->hasMany(Client::class, 'parent_client_id');
-       }
-
-       public function user()
-       {
-           return $this->belongsTo(User::class);
        }
 
        public function deviceMappings()

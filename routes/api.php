@@ -2,6 +2,7 @@
 
 use App\Helpers\ResponseHelper;
 use App\Http\Controllers\Admin\AdminController;
+use App\Http\Controllers\Client\ClientAuthController;
 use App\Http\Controllers\Client\ClientController;
 use App\Http\Controllers\RefreshTokenController;
 use App\Http\Controllers\Admin\AdminManagesUserController;
@@ -68,4 +69,18 @@ Route::post('/resend-verification-email', [AuthController::class, 'resendVerific
 /** Reset password */
 Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
 Route::post('/reset-password-by-email', [AuthController::class, 'resetPasswordByEmail']);
+
+
+
+Route::prefix('client')->group(function () {
+    Route::post('register', [ClientAuthController::class, 'register']);
+    Route::post('login', [ClientAuthController::class, 'login']);
+
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::get('profile', [ClientAuthController::class, 'profile']);
+        Route::put('profile', [ClientAuthController::class, 'updateProfile']);
+        Route::post('reset-password', [ClientAuthController::class, 'resetPassword']);
+        Route::post('logout', [ClientAuthController::class, 'logout']);
+    });
+});
 

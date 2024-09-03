@@ -18,6 +18,7 @@ class ClientDto extends Data
         public ?float $vat_slab = null,
         public ?string $gbs_information = null,
         public bool $is_vip = false,
+        public bool $is_seller = false,
         public ?float $vip_discount = null,
         public ?int $parent_client_id = null,
         public bool $status = true

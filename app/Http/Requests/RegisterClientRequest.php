@@ -25,6 +25,7 @@ class RegisterClientRequest extends FormRequest
             'vat_slab' => 'nullable|numeric|min:0',
             'gbs_information' => 'nullable|string',
             'is_vip' => 'boolean',
+            'is_seller' => 'boolean',
             'vip_discount' => 'nullable|numeric|min:0',
             'parent_client_id' => 'nullable|exists:clients,id',
         ];
