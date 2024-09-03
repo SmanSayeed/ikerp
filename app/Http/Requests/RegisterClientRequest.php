@@ -2,7 +2,10 @@
 
 namespace App\Http\Requests;
 
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Http\Exceptions\HttpResponseException;
+use App\Helpers\ResponseHelper;
 
 class RegisterClientRequest extends FormRequest
 {
@@ -15,12 +18,10 @@ class RegisterClientRequest extends FormRequest
     {
         return [
             'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users,email',
+            'email' => 'required|string|email|max:255|unique:clients,email',
             'password' => 'required|string|min:8|confirmed',
-            'role' => 'required|in:admin,sub_admin,service_provider,client',
             'address' => 'nullable|string|max:255',
             'phone' => 'nullable|string|max:15',
-            'client_type' => 'required|in:buyer,seller,both',
             'payment_due_date' => 'nullable|date',
             'vat_slab' => 'nullable|numeric|min:0',
             'gbs_information' => 'nullable|string',
@@ -31,4 +32,18 @@ class RegisterClientRequest extends FormRequest
         ];
     }
 
+    /**
+     * Handle a failed validation attempt.
+     *
+     * @param Validator $validator
+     * @throws HttpResponseException
+     */
+    protected function failedValidation(Validator $validator)
+    {
+        $errors = $validator->errors()->toArray();
+
+        throw new HttpResponseException(
+            ResponseHelper::error('Validation failed', 422, $errors)
+        );
+    }
 }

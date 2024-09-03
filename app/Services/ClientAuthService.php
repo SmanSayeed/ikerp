@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\DTOs\ClientDto;
+use App\DTOs\ClientRegisterDto;
 use App\Models\Client;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Facades\Hash;
@@ -17,10 +17,10 @@ class ClientAuthService
      * @param array $data
      * @return array
      */
-    public function register(ClientDto $clientDto)
+    public function register(ClientRegisterDto $clientRegisterDto)
     {
         try {
-            $data = $clientDto->toArray();
+            $data = $clientRegisterDto->toArray();
             $data['password'] = bcrypt($data['password']);
             $client = Client::create($data);
             // Generate token
@@ -55,12 +55,12 @@ class ClientAuthService
      * Update client profile.
      *
      * @param Client $client
-     * @param ClientDto $clientDto
+     * @param ClientRegisterDto $clientRegisterDto
      * @return Client
      */
-    public function updateProfile(Client $client, ClientDto $clientDto)
+    public function updateProfile(Client $client, ClientRegisterDto $clientRegisterDto)
     {
-        $client->update($clientDto->toArray());
+        $client->update($clientRegisterDto->toArray());
         return $client;
     }
 

@@ -2,71 +2,151 @@
 
 namespace App\Services;
 
-use App\DTOs\UpdateUserDto;
-use App\Helpers\ResponseHelper;
-use App\Repositories\UserRepositoryInterface;
+use App\Models\Client;
 use Illuminate\Http\JsonResponse;
+use App\Helpers\ResponseHelper;
 use Illuminate\Support\Facades\Auth;
 use Exception;
+use Illuminate\Support\Facades\Hash;
 
 class ClientService
 {
-    protected UserRepositoryInterface $userRepository;
-
-    public function __construct(UserRepositoryInterface $userRepository)
-    {
-        $this->userRepository = $userRepository;
-    }
-
-    /**
-     * Retrieve the authenticated user's profile.
-     *
-     * @return JsonResponse
-     */
-    public function getProfile(): JsonResponse
+    public function clientsList(array $filters): JsonResponse
     {
         try {
-            // Get the authenticated user
-            $user = Auth::user();
+            // Apply filters and retrieve clients from the database
+            $query = Client::query();
 
-            // Check if the user is authenticated
-            if (!$user) {
-                return ResponseHelper::error('User not authenticated.', 401);
+            if (isset($filters['keyword'])) {
+                $query->where('name', 'like', '%' . $filters['keyword'] . '%')
+                    ->orWhere('email', 'like', '%' . $filters['keyword'] . '%');
             }
 
-            // Return the user data
-            return ResponseHelper::success($user, 'User profile retrieved successfully.');
+            if (isset($filters['status'])) {
+                $query->where('status', $filters['status']);
+            }
+
+            if (isset($filters['email_verified_at'])) {
+                $query->whereNotNull('email_verified_at');
+            }
+
+            if (isset($filters['role'])) {
+                $query->where('role', $filters['role']);
+            }
+
+            $orderBy = $filters['order_by'] ?? 'id';
+            $orderDirection = $filters['order_direction'] ?? 'asc';
+            $query->orderBy($orderBy, $orderDirection);
+
+            $perPage = $filters['per_page'] ?? 15;
+            $clients = $query->paginate($perPage);
+
+            return ResponseHelper::success($clients, 'Clients retrieved successfully.');
         } catch (Exception $e) {
-            return ResponseHelper::error('Failed to retrieve user profile: ' . $e->getMessage(), 500);
+            return ResponseHelper::error('Failed to retrieve clients: ' . $e->getMessage(), 500);
         }
     }
 
-    /**
-     * Update the user's profile.
-     *
-     * @param UpdateUserDto $userDTO
-     * @return JsonResponse
-     */
-    public function updateProfile(UpdateUserDto $userDTO): JsonResponse
+    public function getProfile(): JsonResponse
     {
         try {
-            // Get the authenticated user
-            $user = Auth::user();
+            $client = Auth::user();
 
-            // Check if the user is authenticated
-            if (!$user) {
-                return ResponseHelper::error('User not authenticated.', 401);
+            if (!$client) {
+                return ResponseHelper::error('Client not authenticated.', 401);
             }
 
-            // Update the user's profile data
-            $user->name = $userDTO->name;
-            // You can update other fields from the DTO as well
-            $user->save();
+            return ResponseHelper::success($client, 'Client profile retrieved successfully.');
+        } catch (Exception $e) {
+            return ResponseHelper::error('Failed to retrieve client profile: ' . $e->getMessage(), 500);
+        }
+    }
 
-            // Return the updated user data
-            return ResponseHelper::success($user, 'Profile updated successfully.');
+    public function updateProfile(Client $client, array $data): JsonResponse
+    {
+        try {
+            $client->update($data);
+            return ResponseHelper::success($client, 'Profile updated successfully.');
         } catch (Exception $e) {
             return ResponseHelper::error('Failed to update profile: ' . $e->getMessage(), 500);
+        }
+    }
+
+    public function updateEmailVerification(Client $client, bool $verified): JsonResponse
+    {
+        try {
+            $client->email_verified_at = $verified ? now() : null;
+            $client->save();
+            return ResponseHelper::success($client, 'Email verification updated successfully.');
+        } catch (Exception $e) {
+            return ResponseHelper::error('Failed to update email verification: ' . $e->getMessage(), 500);
+        }
+    }
+
+    public function updateClientStatus(Client $client, bool $status): JsonResponse
+    {
+        try {
+            $client->status = $status;
+            $client->save();
+            return ResponseHelper::success($client, 'Client status updated successfully.');
+        } catch (Exception $e) {
+            return ResponseHelper::error('Failed to update client status: ' . $e->getMessage(), 500);
+        }
+    }
+
+    public function updateClientInfo(Client $client, array $data): JsonResponse
+    {
+        try {
+            $client->update($data);
+            return ResponseHelper::success($client, 'Client information updated successfully.');
+        } catch (Exception $e) {
+            return ResponseHelper::error('Failed to update client information: ' . $e->getMessage(), 500);
+        }
+    }
+
+    public function getClientWithTrashed($id): ?Client
+    {
+        return Client::withTrashed()->find($id);
+    }
+
+    public function getAllClientsWithTrashed(): JsonResponse
+    {
+        try {
+            $clients = Client::withTrashed()->get();
+            return ResponseHelper::success($clients, 'Clients retrieved successfully.');
+        } catch (Exception $e) {
+            return ResponseHelper::error('Failed to retrieve clients: ' . $e->getMessage(), 500);
+        }
+    }
+
+    public function softDeleteClient(Client $client): JsonResponse
+    {
+        try {
+            $client->delete();
+            return ResponseHelper::success(null, 'Client soft deleted successfully.');
+        } catch (Exception $e) {
+            return ResponseHelper::error('Failed to soft delete client: ' . $e->getMessage(), 500);
+        }
+    }
+
+    public function hardDeleteClient(Client $client): JsonResponse
+    {
+        try {
+            $client->forceDelete();
+            return ResponseHelper::success(null, 'Client hard deleted successfully.');
+        } catch (Exception $e) {
+            return ResponseHelper::error('Failed to hard delete client: ' . $e->getMessage(), 500);
+        }
+    }
+
+    public function updateClientPassword(Client $client, string $password): JsonResponse
+    {
+        try {
+            $client->password = Hash::make($password);
+            $client->save();
+            return ResponseHelper::success(null, 'Password updated successfully.');
+        } catch (Exception $e) {
+            return ResponseHelper::error('Failed to update password: ' . $e->getMessage(), 500);
         }
     }
 }

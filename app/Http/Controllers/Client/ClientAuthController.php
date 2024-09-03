@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Client;
 
 use App\DTOs\ClientDto;
+use App\DTOs\ClientRegisterDto;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterClientRequest;
@@ -27,8 +28,8 @@ class ClientAuthController extends Controller
     public function register(RegisterClientRequest $request)
 {
     try {
-        $clientDto = ClientDto::from($request->validated());
-        $result = $this->clientAuthService->register($clientDto);
+        $clientRegisterDto = ClientRegisterDto::from($request->validated());
+        $result = $this->clientAuthService->register($clientRegisterDto);
 
         return ResponseHelper::success([
             'client' => new ClientResource($result['client']),
@@ -72,8 +73,8 @@ public function updateProfile(Request $request)
         return ResponseHelper::error($validator->errors()->first(), 422);
     }
 
-    $clientDto = ClientDto::from($validator->validated());
-    $updatedClient = $this->clientAuthService->updateProfile($user, $clientDto);
+    $clientRegisterDto = ClientDto::from($validator->validated());
+    $updatedClient = $this->clientAuthService->updateProfile($user, $clientRegisterDto);
 
     return ResponseHelper::success(new ClientResource($updatedClient), 'Profile updated successfully.');
 }

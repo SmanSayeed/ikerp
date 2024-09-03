@@ -9,7 +9,7 @@ use App\Http\Requests\UpdateProfileRequest;
 use App\Services\ClientService;
 use Illuminate\Http\JsonResponse;
 use Exception;
-
+use App\Models\Client;
 class ClientController extends Controller
 {
     protected ClientService $clientService;

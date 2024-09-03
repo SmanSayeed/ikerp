@@ -2,6 +2,7 @@
 
 use App\Helpers\ResponseHelper;
 use App\Http\Controllers\Admin\AdminController;
+use App\Http\Controllers\Admin\AdminManagesClientController;
 use App\Http\Controllers\Client\ClientAuthController;
 use App\Http\Controllers\Client\ClientController;
 use App\Http\Controllers\RefreshTokenController;
@@ -69,6 +70,21 @@ Route::post('/resend-verification-email', [AuthController::class, 'resendVerific
 /** Reset password */
 Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
 Route::post('/reset-password-by-email', [AuthController::class, 'resetPasswordByEmail']);
+
+Route::prefix('admin/clients')->group(function () {
+    Route::get('/', [AdminManagesClientController::class, 'clientsList']);
+    Route::get('/profile', [AdminManagesClientController::class, 'getProfile']);
+    Route::put('/profile', [AdminManagesClientController::class, 'updateProfile']);
+    Route::patch('/{client}/email-verification', [AdminManagesClientController::class, 'updateEmailVerification']);
+    Route::patch('/{client}/status', [AdminManagesClientController::class, 'updateStatus']);
+    Route::put('/{client}', [AdminManagesClientController::class, 'updateClientInfo']);
+    Route::get('/{id}', [AdminManagesClientController::class, 'getClientById']);
+    Route::post('/restore/{id}', [AdminManagesClientController::class, 'restoreClient']);
+    Route::get('/trashed', [AdminManagesClientController::class, 'getAllClientsWithTrashed']);
+    Route::delete('/{client}/soft-delete', [AdminManagesClientController::class, 'softDeleteClient']);
+    Route::delete('/{client}/hard-delete', [AdminManagesClientController::class, 'hardDeleteClient']);
+    Route::patch('/{client}/password', [AdminManagesClientController::class, 'updateClientPassword']);
+});
 
 
 

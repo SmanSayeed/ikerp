@@ -4,13 +4,12 @@ namespace App\DTOs;
 
 use Spatie\LaravelData\Data;
 
-class ClientDto extends Data
+class ClientRegisterDto extends Data
 {
     public function __construct(
         public string $name,
         public string $email,
         public string $password,
-        public string $role,
         public ?string $address = null,
         public ?string $phone = null,
         public ?string $payment_due_date = null,
@@ -20,6 +19,5 @@ class ClientDto extends Data
         public bool $is_seller = false,
         public ?float $vip_discount = null,
         public ?int $parent_client_id = null,
-        public bool $status = true
     ) {}
 }
