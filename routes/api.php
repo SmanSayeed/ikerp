@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\AdminManagesUserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\Admin\DeviceController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -85,6 +86,19 @@ Route::prefix('admin/clients')->group(function () {
     Route::delete('/{client}/hard-delete', [AdminManagesClientController::class, 'hardDeleteClient']);
     Route::patch('/{client}/password', [AdminManagesClientController::class, 'updateClientPassword']);
 });
+
+
+
+Route::prefix('admin')->group(function () {
+    Route::middleware('auth:admin-api')->group(function () {
+        Route::get('devices', [DeviceController::class, 'index']); // List all devices
+        Route::post('devices', [DeviceController::class, 'store']); // Create a new device
+        Route::get('devices/{id}', [DeviceController::class, 'show']); // Show a specific device
+        Route::put('devices/{id}', [DeviceController::class, 'update']); // Update a specific device
+        Route::delete('devices/{id}', [DeviceController::class, 'destroy']); // Delete a specific device
+    });
+});
+
 
 
 
