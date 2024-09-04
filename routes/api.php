@@ -7,6 +7,7 @@ use App\Http\Controllers\Client\ClientAuthController;
 use App\Http\Controllers\Client\ClientController;
 use App\Http\Controllers\RefreshTokenController;
 use App\Http\Controllers\Admin\AdminManagesUserController;
+use App\Http\Controllers\SellerController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
@@ -107,10 +108,14 @@ Route::prefix('client')->group(function () {
     Route::post('login', [ClientAuthController::class, 'login']);
 
     Route::middleware('auth:sanctum')->group(function () {
-        Route::get('profile', [ClientAuthController::class, 'profile']);
-        Route::put('profile', [ClientAuthController::class, 'updateProfile']);
-        Route::post('reset-password', [ClientAuthController::class, 'resetPassword']);
+        Route::get('profile', [ClientController::class, 'getClientProfile']);
+        Route::put('profile', [ClientController::class, 'updateClientProfile']);
+        Route::put('reset-password', [ClientAuthController::class, 'resetPassword']);
         Route::post('logout', [ClientAuthController::class, 'logout']);
+
+        Route::post('become-seller/{clientId}', [SellerController::class, 'becomeSeller']);
+        Route::get('seller/{clientId}', [SellerController::class, 'getSellerInfo']);
+        Route::put('seller/{clientId}', [SellerController::class, 'updateSellerInfo']);
     });
 });
 

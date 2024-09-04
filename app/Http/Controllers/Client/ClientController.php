@@ -13,6 +13,9 @@ use App\Services\ClientService;
 use Illuminate\Http\JsonResponse;
 use Exception;
 use App\Models\Client;
+use Illuminate\Validation\ValidationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+
 class ClientController extends Controller
 {
     protected ClientService $clientService;
@@ -31,7 +34,7 @@ class ClientController extends Controller
     {
         try {
             $client = $this->clientService->getProfile();
-            return ResponseHelper::success(new ClientResource($client), 'Client profile retrieved successfully.');
+            return ResponseHelper::success(['client'=>new ClientResource($client)], 'Client profile retrieved successfully.');
         } catch (Exception $e) {
             return ResponseHelper::error('Failed to retrieve client profile: ' . $e->getMessage(), 500);
         }
@@ -48,7 +51,11 @@ class ClientController extends Controller
         try {
             $clientDTO = UpdateClientDto::from($request->validated());
             $client = $this->clientService->updateProfile($clientDTO);
-            return ResponseHelper::success(new ClientResource($client), 'Profile updated successfully.');
+            return ResponseHelper::success(['client'=>new ClientResource($client)], 'Profile updated successfully.');
+        } catch (ValidationException $e) {
+            return ResponseHelper::error('Validation failed: ' . $e->getMessage(), 422);
+        } catch (ModelNotFoundException $e) {
+            return ResponseHelper::error('Client not found: ' . $e->getMessage(), 404);
         } catch (Exception $e) {
             return ResponseHelper::error('Failed to update profile: ' . $e->getMessage(), 500);
         }

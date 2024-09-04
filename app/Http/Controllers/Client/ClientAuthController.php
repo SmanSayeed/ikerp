@@ -54,30 +54,7 @@ public function login(LoginRequest $request)
         'token' => $result['token'],
     ], 'Login successful.');
 }
-public function profile(Request $request)
-{
-    return ResponseHelper::success(new ClientResource($request->user()), 'Profile retrieved successfully.');
-}
 
-public function updateProfile(Request $request)
-{
-    $user = $request->user();
-
-    $validator = Validator::make($request->all(), [
-        'name' => 'required|string|max:255',
-        'address' => 'nullable|string|max:255',
-        'phone' => 'nullable|string|max:15',
-    ]);
-
-    if ($validator->fails()) {
-        return ResponseHelper::error($validator->errors()->first(), 422);
-    }
-
-    $clientRegisterDto = ClientDto::from($validator->validated());
-    $updatedClient = $this->clientAuthService->updateProfile($user, $clientRegisterDto);
-
-    return ResponseHelper::success(new ClientResource($updatedClient), 'Profile updated successfully.');
-}
 
     public function resetPassword(UpdatePasswordRequest $request)
     {
