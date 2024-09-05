@@ -15,10 +15,9 @@ class AdminUpdateClientRequest extends FormRequest
     {
         return [
             'name' => 'sometimes|string|max:255',
-            'email' => 'sometimes|email|unique:clients,email,' . $this->client->id,
             'address' => 'sometimes|string|nullable',
             'phone' => 'sometimes|string|nullable',
-            'password' => 'sometimes|string|min:8|confirmed|nullable',
+            'password' => 'sometimes|string|min:8|nullable',
             'is_seller' => 'sometimes|boolean',
             'payment_due_date' => 'sometimes|date|nullable',
             'vat_slab' => 'sometimes|numeric|nullable',
@@ -26,7 +25,7 @@ class AdminUpdateClientRequest extends FormRequest
             'is_vip' => 'sometimes|boolean',
             'vip_discount' => 'sometimes|numeric|nullable',
             'status' => 'sometimes|boolean',
-            'email_verified_at' => 'sometimes|nullable|date',
+            'email_verified_at' => 'sometimes|boolean|nullable',
         ];
     }
 }

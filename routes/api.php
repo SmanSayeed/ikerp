@@ -36,6 +36,8 @@ Route::post('login', [AuthController::class, 'login'])->middleware('check.user.s
 ;
 
 Route::post('refresh-token', [RefreshTokenController::class, 'refresh'])->middleware('auth:sanctum');
+
+
 Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
     // Route::get('/admin/profile', function () {
     //     return ResponseHelper::success(null, 'You are an admin.');
@@ -56,6 +58,26 @@ Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
     Route::put('users/{id}/restore', [AdminManagesUserController::class, 'restoreUser']);
     Route::put('users/{user}', [AdminManagesUserController::class, 'updateUserInfo']);
     Route::get('/users', [AdminManagesUserController::class, 'usersList']);
+
+
+    /*************Admin manages client******** */
+    Route::prefix('admin/clients')->group(function () {
+        Route::get('/', [AdminManagesClientController::class, 'clientsList']);
+        Route::get('/profile', [AdminManagesClientController::class, 'getProfile']);
+        // Route::put('/profile', [AdminManagesClientController::class, 'updateProfile']);
+        Route::patch('/{client}/email-verification', [AdminManagesClientController::class, 'updateEmailVerification']);
+        Route::patch('/{client}/status', [AdminManagesClientController::class, 'updateStatus']);
+
+        Route::put('/{client}', [AdminManagesClientController::class, 'updateClientInfo']);
+
+        Route::get('/{id}', [AdminManagesClientController::class, 'getClientById']);
+        Route::post('/restore/{id}', [AdminManagesClientController::class, 'restoreClient']);
+        Route::get('/trashed', [AdminManagesClientController::class, 'getAllClientsWithTrashed']);
+        Route::delete('/{client}/soft-delete', [AdminManagesClientController::class, 'softDeleteClient']);
+        Route::delete('/{client}/hard-delete', [AdminManagesClientController::class, 'hardDeleteClient']);
+        Route::patch('/{client}/password', [AdminManagesClientController::class, 'updateClientPassword']);
+    });
+
 });
 
 Route::middleware(['auth:sanctum', 'role:client'])->group(function () {
@@ -73,20 +95,6 @@ Route::post('/resend-verification-email', [AuthController::class, 'resendVerific
 Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
 Route::post('/reset-password-by-email', [AuthController::class, 'resetPasswordByEmail']);
 
-Route::prefix('admin/clients')->group(function () {
-    Route::get('/', [AdminManagesClientController::class, 'clientsList']);
-    Route::get('/profile', [AdminManagesClientController::class, 'getProfile']);
-    Route::put('/profile', [AdminManagesClientController::class, 'updateProfile']);
-    Route::patch('/{client}/email-verification', [AdminManagesClientController::class, 'updateEmailVerification']);
-    Route::patch('/{client}/status', [AdminManagesClientController::class, 'updateStatus']);
-    Route::put('/{client}', [AdminManagesClientController::class, 'updateClientInfo']);
-    Route::get('/{id}', [AdminManagesClientController::class, 'getClientById']);
-    Route::post('/restore/{id}', [AdminManagesClientController::class, 'restoreClient']);
-    Route::get('/trashed', [AdminManagesClientController::class, 'getAllClientsWithTrashed']);
-    Route::delete('/{client}/soft-delete', [AdminManagesClientController::class, 'softDeleteClient']);
-    Route::delete('/{client}/hard-delete', [AdminManagesClientController::class, 'hardDeleteClient']);
-    Route::patch('/{client}/password', [AdminManagesClientController::class, 'updateClientPassword']);
-});
 
 
 

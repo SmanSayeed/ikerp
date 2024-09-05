@@ -26,6 +26,7 @@ class ClientResource extends JsonResource
             'gbs_information' => $this->gbs_information,
             'parent_client_id' => $this->parent_client_id,
             'status' => $this->status,
+            'vip_discount' => $this->vip_discount,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             'is_seller' => $this->is_seller,

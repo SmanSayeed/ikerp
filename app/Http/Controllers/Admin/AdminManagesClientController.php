@@ -12,6 +12,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Models\Client;
 use Exception;
+use Illuminate\Support\Facades\Hash;
 
 class AdminManagesClientController extends Controller
 {
@@ -67,10 +68,18 @@ class AdminManagesClientController extends Controller
         try {
             $updateData = [
                 'name' => $validated['name'] ?? $client->name,
-                'email' => $validated['email'] ?? $client->email,
-                'password' => $validated['password'] ?? $client->password,
+                'address' => $validated['address'] ?? $client->address,
+                'phone' => $validated['phone'] ?? $client->phone,
+                'password' => isset($validated['password']) ? Hash::make($validated['password']) : $client->password,
+
+                'is_seller' => $validated['is_seller'] ?? $client->is_seller,
+                'payment_due_date' => $validated['payment_due_date'] ?? $client->payment_due_date,
+                'vat_slab' => $validated['vat_slab'] ?? $client->vat_slab,
+                'gbs_information' => $validated['gbs_information'] ?? $client->gbs_information,
+                'is_vip' => $validated['is_vip'] ?? $client->is_vip,
+                'vip_discount' => $validated['vip_discount'] ?? $client->vip_discount,
                 'status' => $validated['status'] ?? $client->status,
-                'email_verified_at' => $validated['email_verified_at'] ?? $client->email_verified_at,
+                'email_verified_at' => $validated['email_verified_at'] ? now() : null,
             ];
 
             $this->adminManagesClientService->updateClientInfo($client, $updateData);
