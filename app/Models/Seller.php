@@ -13,6 +13,7 @@ class Seller extends Model
         'company_vat_number',
         'company_kvk_number',
         'client_id',
+        'status'
     ];
 
     public function client()

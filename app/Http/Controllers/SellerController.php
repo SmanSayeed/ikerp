@@ -2,116 +2,49 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\Seller;
-use App\Models\Client;
-use Illuminate\Support\Facades\Validator;
+use App\Helpers\ResponseHelper;
+use App\Http\Requests\ClientBecomesSellerRequest;
+use App\Http\Requests\ClientUpdateSellerRequest;
+use App\Services\SellerService;
+use Illuminate\Http\JsonResponse;
+use App\Http\Resources\SellerResource;
 
 class SellerController extends Controller
 {
-    /**
-     * Make a client become a seller.
-     *
-     * @param Request $request
-     * @param int $clientId
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function becomeSeller(Request $request, $clientId)
+    protected $sellerService;
+
+    public function __construct(SellerService $sellerService)
     {
-        $validator = Validator::make($request->all(), [
-            'company_name' => 'required|string',
-            'company_address' => 'required|string',
-            'company_logo' => 'nullable|string',
-            'company_vat_number' => 'required|string|unique:sellers,company_vat_number',
-            'company_kvk_number' => 'required|string|unique:sellers,company_kvk_number',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => 'error',
-                'message' => $validator->errors()
-            ], 422);
-        }
-
-        $client = Client::findOrFail($clientId);
-
-        $seller = Seller::create([
-            'company_name' => $request->company_name,
-            'company_address' => $request->company_address,
-            'company_logo' => $request->company_logo,
-            'company_vat_number' => $request->company_vat_number,
-            'company_kvk_number' => $request->company_kvk_number,
-            'client_id' => $clientId,
-        ]);
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Client successfully registered as a seller.',
-            'data' => $seller
-        ], 201);
+        $this->sellerService = $sellerService;
     }
 
-    /**
-     * Retrieve seller information for a client.
-     *
-     * @param int $clientId
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function getSellerInfo($clientId)
+    public function becomeSeller(ClientBecomesSellerRequest $request, int $clientId): JsonResponse
     {
-        $seller = Seller::where('client_id', $clientId)->first();
-
-        if (!$seller) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Seller information not found.'
-            ], 404);
+        try {
+            $seller = $this->sellerService->registerSeller($request->validated(), $clientId);
+            return ResponseHelper::success(new SellerResource($seller), 'Client successfully registered as a seller.', 201);
+        } catch (\Exception $e) {
+            return ResponseHelper::error('Failed to register seller.', 500, ['error' => $e->getMessage()]);
         }
-
-        return response()->json([
-            'status' => 'success',
-            'data' => $seller
-        ], 200);
     }
 
-    /**
-     * Update seller information.
-     *
-     * @param Request $request
-     * @param int $clientId
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function updateSellerInfo(Request $request, $clientId)
+    public function getSellerInfo(int $clientId): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
-            'company_name' => 'sometimes|required|string',
-            'company_address' => 'sometimes|required|string',
-            'company_logo' => 'nullable|string',
-            'company_vat_number' => 'sometimes|required|string',
-            'company_kvk_number' => 'sometimes|required|string',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => 'error',
-                'message' => $validator->errors()
-            ], 422);
+        try {
+            $seller = $this->sellerService->getSellerInfo($clientId);
+            return ResponseHelper::success(new SellerResource($seller), 'Seller information retrieved successfully.');
+        } catch (\Exception $e) {
+            return ResponseHelper::error('Failed to retrieve seller information.', 500, ['error' => $e->getMessage()]);
         }
+    }
 
-        $seller = Seller::where('client_id', $clientId)->firstOrFail();
-
-        $seller->update($request->only([
-            'company_name',
-            'company_address',
-            'company_logo',
-            'company_vat_number',
-            'company_kvk_number',
-        ]));
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Seller information updated successfully.',
-            'data' => $seller
-        ], 200);
+    public function updateSellerInfo(ClientUpdateSellerRequest $request, int $clientId): JsonResponse
+    {
+        try {
+            $seller = $this->sellerService->updateSellerInfo($request->validated(), $clientId);
+            return ResponseHelper::success(new SellerResource($seller), 'Seller information updated successfully.');
+        } catch (\Exception $e) {
+            return ResponseHelper::error('Failed to update seller information.', 500, ['error' => $e->getMessage()]);
+        }
     }
 }

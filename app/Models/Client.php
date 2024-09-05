@@ -41,9 +41,10 @@ class Client extends Authenticatable
            return $this->hasMany(Invoice::class);
        }
 
-       public function seller()
-       {
-           return $this->belongsTo(Seller::class);
-       }
+
+    public function seller()
+    {
+        return $this->hasOne(Seller::class);
+    }
    }
 
