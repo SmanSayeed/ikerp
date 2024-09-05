@@ -3,6 +3,7 @@
 use App\Helpers\ResponseHelper;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\AdminManagesClientController;
+use App\Http\Controllers\Admin\AdminManagesSellerProfileController;
 use App\Http\Controllers\Client\ClientAuthController;
 use App\Http\Controllers\Client\ClientController;
 use App\Http\Controllers\RefreshTokenController;
@@ -76,6 +77,12 @@ Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
         Route::delete('/{client}/soft-delete', [AdminManagesClientController::class, 'softDeleteClient']);
         Route::delete('/{client}/hard-delete', [AdminManagesClientController::class, 'hardDeleteClient']);
         Route::patch('/{client}/password', [AdminManagesClientController::class, 'updateClientPassword']);
+    });
+
+
+    Route::prefix('admin/clients/seller')->group(function () {
+        Route::get('{clientId}', [AdminManagesSellerProfileController::class, 'show']);
+        Route::put('{clientId}', [AdminManagesSellerProfileController::class, 'update']);
     });
 
 });
