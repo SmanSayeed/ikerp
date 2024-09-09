@@ -22,14 +22,14 @@ class AdminUpdateSellerRequest extends FormRequest
      * @return array
      */
     public function rules(): array
-    {
+    {  $clientId = $this->route('clientId');
         return [
             'company_name' => 'required|string|max:255',
             'company_address' => 'required|string|max:255',
             'company_logo' => 'nullable|string|max:255',
-            'company_vat_number' => 'required|string|unique:sellers,company_vat_number,' . $this->route('clientId'),
-            'company_kvk_number' => 'required|string|unique:sellers,company_kvk_number,' . $this->route('clientId'),
-            'status' => 'boolean',
+            'company_vat_number' => 'nullable',
+            'company_kvk_number' => 'nullable',
+            'status' => 'sometimes|boolean',
         ];
     }
 }
