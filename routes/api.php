@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Admin\DeviceController;
+use App\Http\Controllers\SqliteController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -134,3 +135,8 @@ Route::prefix('client')->group(function () {
     });
 });
 
+
+// ------------------SQLITE API----------------
+
+
+Route::get('/sqlite-users', [SqliteController::class, 'index']);
