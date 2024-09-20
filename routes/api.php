@@ -139,4 +139,4 @@ Route::prefix('client')->group(function () {
 // ------------------SQLITE API----------------
 
 
-Route::get('/sqlite-users', [SqliteController::class, 'index']);
+Route::get('/sqlite', [SqliteController::class, 'index']);
