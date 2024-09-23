@@ -8,6 +8,7 @@ class AdminUpdateClientDto extends Data
 {
     public function __construct(
         public string $name,
+        public ?string $client_remotik_id = null,
         public ?string $email = null,
         public ?string $address = null,
         public ?string $phone = null,

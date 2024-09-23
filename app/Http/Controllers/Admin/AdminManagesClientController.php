@@ -70,6 +70,7 @@ class AdminManagesClientController extends Controller
                 'name' => $validated['name'] ?? $client->name,
                 'address' => $validated['address'] ?? $client->address,
                 'phone' => $validated['phone'] ?? $client->phone,
+                'client_remotik_id'=> $validated['client_remotik_id'] ?? $client->client_remotik_id,
                 'password' => isset($validated['password']) ? Hash::make($validated['password']) : $client->password,
 
                 'is_seller' => $validated['is_seller'] ?? $client->is_seller,
@@ -146,7 +147,7 @@ class AdminManagesClientController extends Controller
         }
     }
 
-    public function updateClientPassword(UpdatePasswordRequest $request, Client $client): JsonResponse
+    public function updateClientPassword(Request $request, Client $client): JsonResponse
     {
         $validated = $request->validated();
 

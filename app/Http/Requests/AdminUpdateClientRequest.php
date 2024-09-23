@@ -15,6 +15,7 @@ class AdminUpdateClientRequest extends FormRequest
     {
         return [
             'name' => 'sometimes|string|max:255',
+            'client_remotik_id'=> 'string|nullable',
             'address' => 'sometimes|string|nullable',
             'phone' => 'sometimes|string|nullable',
             'password' => 'sometimes|string|min:8|nullable',

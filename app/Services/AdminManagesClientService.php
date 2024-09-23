@@ -71,6 +71,7 @@ class AdminManagesClientService
 
     public function updateClientInfo(Client $client, array $data): JsonResponse
     {
+
         try {
             $client->update($data);
             return ResponseHelper::success(new AdminManagesClientResource($client), 'Client information updated successfully.');
@@ -84,7 +85,7 @@ class AdminManagesClientService
         return Client::withTrashed()->find($id);
     }
 
-   
+
 
     public function getAllClientsWithTrashed(): JsonResponse
     {
