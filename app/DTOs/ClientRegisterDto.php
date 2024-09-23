@@ -11,6 +11,7 @@ class ClientRegisterDto extends Data
         public string $email,
         public string $password,
         public ?string $address = null,
+        public ?string $client_remotik_id = null,
         public ?string $phone = null,
         public ?string $payment_due_date = null,
         public ?float $vat_slab = null,

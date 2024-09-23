@@ -22,6 +22,7 @@ class RegisterClientRequest extends FormRequest
             'password' => 'required|string|min:8|confirmed',
             'address' => 'nullable|string|max:255',
             'phone' => 'nullable|string|max:15',
+            'client_remotik_id' => 'nullable|string',
             'payment_due_date' => 'nullable|date',
             'vat_slab' => 'nullable|numeric|min:0',
             'gbs_information' => 'nullable|string',

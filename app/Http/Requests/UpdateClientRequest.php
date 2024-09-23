@@ -19,6 +19,7 @@ class UpdateClientRequest extends FormRequest
             'email' => 'sometimes|email|unique:clients,email,' . $clientId,
             'address' => 'sometimes|string|nullable',
             'phone' => 'sometimes|string|nullable',
+            'client_remotik_id' => 'string|nullable',
             'payment_due_date' => 'sometimes|date|nullable',
             'vat_slab' => 'sometimes|numeric|nullable',
             'gbs_information' => 'sometimes|string|nullable',
