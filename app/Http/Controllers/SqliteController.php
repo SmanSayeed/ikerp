@@ -2,15 +2,24 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\SqliteModel;
+use App\Models\SqliteModelMain;
+use App\Models\SqliteModelPower;
 use Illuminate\Http\Request;
 
 class SqliteController extends Controller
 {
-    public function index()
+    public function main()
     {
         // Fetch all data from the users table in SQLite
-        $users = SqliteModel::all();
+        $users = SqliteModelMain::all();
+
+        return response()->json($users);
+    }
+
+    public function power()
+    {
+        // Fetch all data from the users table in SQLite
+        $users = SqliteModelPower::all();
 
         return response()->json($users);
     }
