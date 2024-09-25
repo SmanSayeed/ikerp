@@ -26,7 +26,7 @@ class AdminManagesClientController extends Controller
     public function clientsList(Request $request): JsonResponse
     {
         try {
-            $filters = $request->only(['keyword', 'status', 'email_verified_at', 'order_by', 'order_direction', 'per_page', 'role']);
+            $filters = $request->only(['keyword', 'status', 'email_verified_at', 'order_by', 'order_direction', 'per_page', 'role','client_remotik_id']);
             return $this->adminManagesClientService->clientsList($filters);
         } catch (Exception $e) {
             return ResponseHelper::error('Failed to retrieve client list: ' . $e->getMessage(), 500);

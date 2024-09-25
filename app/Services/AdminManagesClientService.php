@@ -19,7 +19,8 @@ class AdminManagesClientService
 
             if (isset($filters['keyword'])) {
                 $query->where('name', 'like', '%' . $filters['keyword'] . '%')
-                      ->orWhere('email', 'like', '%' . $filters['keyword'] . '%');
+                      ->orWhere('email', 'like', '%' . $filters['keyword'] . '%')
+                      ->orWhere('client_remotik_id', 'like', '%' . $filters['keyword'] . '%');
             }
 
             if (isset($filters['status'])) {
