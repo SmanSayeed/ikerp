@@ -141,5 +141,6 @@ Route::prefix('client')->group(function () {
 Route::prefix('sqlite')->group(function () {
     Route::get('/main', [SqliteController::class, 'main']);
     Route::get('/power', [SqliteController::class, 'power']);
+    Route::get('/eventid', [SqliteController::class, 'eventid']);
 });
 
