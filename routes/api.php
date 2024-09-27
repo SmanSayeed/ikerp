@@ -13,7 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Admin\DeviceController;
-use App\Http\Controllers\SqliteController;
+use App\Http\Controllers\Sqlite\SqliteController;
 /*
 |--------------------------------------------------------------------------
 | API Routes

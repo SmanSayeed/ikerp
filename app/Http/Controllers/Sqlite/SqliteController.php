@@ -1,7 +1,7 @@
 <?php
 
-namespace App\Http\Controllers;
-
+namespace App\Http\Controllers\Sqlite;
+use App\Http\Controllers\Controller;
 use App\Models\SqliteModelEventid;
 use App\Models\SqliteModelMain;
 use App\Models\SqliteModelPower;
@@ -20,15 +20,15 @@ class SqliteController extends Controller
     public function power()
     {
         // Fetch all data from the users table in SQLite
-        $users = SqliteModelPower::all();
+        $data = SqliteModelPower::all();
 
-        return response()->json($users);
+        return response()->json($data);
     }
     public function eventid()
     {
         // Fetch all data from the users table in SQLite
-        $users = SqliteModelEventid::all();
+        $data = SqliteModelEventid::all();
 
-        return response()->json($users);
+        return response()->json($data);
     }
 }
