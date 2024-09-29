@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\AdminManagesClientController;
 use App\Http\Controllers\Admin\AdminManagesSellerProfileController;
 use App\Http\Controllers\Client\ClientAuthController;
 use App\Http\Controllers\Client\ClientController;
+use App\Http\Controllers\PowerDataController;
 use App\Http\Controllers\RefreshTokenController;
 use App\Http\Controllers\Admin\AdminManagesUserController;
 use App\Http\Controllers\SellerController;
@@ -146,6 +147,7 @@ Route::prefix('sqlite')->group(function () {
 
 });
 
+Route::get('/sync', [PowerDataController::class, 'syncSqlite']);
 
 
 Route::prefix('invoice')->group(function () {

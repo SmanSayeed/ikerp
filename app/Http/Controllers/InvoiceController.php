@@ -2,34 +2,45 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\SqliteModelPower;
+use App\Models\PowerData;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class InvoiceController extends Controller
 {
     public function generateInvoice(Request $request)
     {
-        // Fetch all data from the database
-        $data = SqliteModelPower::all();
+        // Get 'from' and 'to' dates from the request
+        $from = $request->input('from');
+        $to = $request->input('to');
 
-        // Filter out the nodes that had power 1
-        $poweredNodes = $data->filter(function ($item) {
-            return $item->doc['power'] === 1;
-        });
+        // Query builder to fetch unique client_id, nodeid, and date with power status aggregation
+        $query = PowerData::select(DB::raw('client_id, nodeid, DATE(time) as date, MAX(power) as power_status'))
+            ->where('nodeid', '!=', '*') // Skip entries where nodeid is "*"
+            ->groupBy('client_id', 'nodeid', DB::raw('DATE(time)')); // Group by client_id, nodeid, and date
 
-        // If there are any nodes with power 1, return those node IDs
-        if ($poweredNodes->isNotEmpty()) {
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Nodes with power 1 found',
-                'nodes' => $poweredNodes->pluck('doc.nodeid'),
-            ]);
+        // Apply the correct filters based on the presence of 'from' and 'to'
+        if ($from && $to) {
+            // If both 'from' and 'to' are provided, filter between those dates
+            $query->whereDate('time', '>=', $from)
+                  ->whereDate('time', '<=', $to);
+        } elseif ($from) {
+            // If only 'from' is provided, filter for that specific date only (== from)
+            $query->whereDate('time', '=', $from);
         }
 
-        // If no node had power 1, return this response
-        return response()->json([
-            'status' => 'success',
-            'message' => 'No nodes had power 1',
-        ]);
+        // If neither 'from' nor 'to' is provided, the query will fetch all records
+
+        // Execute the query and get the results
+        $data = $query->get()->map(function ($item) {
+            return [
+                'client_id' => $item->client_id,
+                'node_id' => $item->nodeid,
+                'time' => $item->date,
+                'power_status' => $item->power_status == 1 ? true : false,
+            ];
+        });
+
+        return response()->json($data);
     }
 }
