@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Admin\DeviceController;
+use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\Sqlite\SqliteController;
 /*
 |--------------------------------------------------------------------------
@@ -141,6 +142,13 @@ Route::prefix('client')->group(function () {
 Route::prefix('sqlite')->group(function () {
     Route::get('/main', [SqliteController::class, 'main']);
     Route::get('/power', [SqliteController::class, 'power']);
-    Route::get('/eventid', [SqliteController::class, 'eventid']);
+
+
 });
 
+
+
+Route::prefix('invoice')->group(function () {
+
+    Route::get('/generate', [InvoiceController::class, 'generateInvoice']);
+});
