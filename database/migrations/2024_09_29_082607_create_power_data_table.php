@@ -15,7 +15,9 @@ return new class extends Migration
             $table->id();
             $table->foreignId('client_id')->constrained('clients')->onDelete('cascade');
             $table->timestamp('time')->nullable(); // This will hold the timestamp as datetime
-            $table->string('nodeid'); // Node ID
+            $table->string('nodeid');
+            $table->string('node_name');
+             // Node ID
             $table->integer('power')->default(0); // Power, defaulting to 0
             $table->timestamps(); // Created_at and Updated_at timestamps
         });

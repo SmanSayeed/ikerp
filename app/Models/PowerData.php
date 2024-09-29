@@ -10,5 +10,5 @@ class PowerData extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['time', 'nodeid', 'power','client_id'];
+    protected $fillable = ['time', 'nodeid', 'power','client_id','node_name'];
 }
