@@ -10,6 +10,7 @@ use App\Models\SqliteModelMain; // Import the model
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use App\Helpers\ResponseHelper; // Helper for handling responses
+use Illuminate\Support\Facades\Log;
 
 class PowerDataController extends Controller
 {
@@ -91,6 +92,7 @@ class PowerDataController extends Controller
             }
         } catch (\Exception $e) {
             // Handle any exception and return an error response
+            Log::error($e->getMessage());
             return ResponseHelper::error(
                 'An error occurred while syncing data: ' . $e->getMessage(),
                 500
