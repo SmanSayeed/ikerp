@@ -156,6 +156,7 @@ Route::prefix('invoice')->group(function () {
     Route::get('/generate', [InvoiceController::class, 'generateInvoice']);
     Route::get('/download/{invoice_id}', [InvoiceController::class, 'downloadInvoice']);
     Route::get('/list', [InvoiceController::class, 'getInvoices']);
-    Route::put('/update', [InvoiceController::class, 'updateInvoice']);
-    Route::delete('/delete', [InvoiceController::class, 'updateInvoice']);
+    Route::get('/view/{invoice_id}', [InvoiceController::class, 'viewInvoice']);
+    Route::put('/update/{invoice_id}', [InvoiceController::class, 'updateInvoice']);
+    Route::delete('/delete/{invoice_id}', [InvoiceController::class, 'deleteInvoice']);
 });

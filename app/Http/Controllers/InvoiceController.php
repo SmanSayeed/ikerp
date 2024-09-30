@@ -157,6 +157,62 @@ class InvoiceController extends Controller
     }
 
 
+    public function viewInvoice($invoice_id)
+    {
+        try {
+            // Fetch the invoice using the invoice_id from the request
+            $invoice = Invoice::with('client')->findOrFail($invoice_id);
+
+            if (!$invoice) {
+                throw new \Exception('Invoice not found');
+            }
+            // Get the client details and device usage details
+            $client = [
+                'name' => $invoice->client_name,
+                'address' => $invoice->client_address,
+                'vip_discount' => $invoice->client_vip_discount,
+            ];
+
+            // Ensure device usage details is properly decoded into an array
+            $deviceUsageDetails = json_decode($invoice->device_usage_details, true);
+
+            // Calculate original and discounted total
+            $originalInvoiceCost = $invoice->original_cost;
+            $totalInvoiceCost = $invoice->total_cost;
+            $discount = $invoice->discount;
+            $vip_discount = $invoice->client_vip_discount;
+
+            // Pass the invoice data to the Blade view
+            $invoiceData =  [
+                'client' => $client,
+                'data' => $deviceUsageDetails,
+                'originalInvoiceCost' => $originalInvoiceCost,
+                'totalInvoiceCost' => $totalInvoiceCost,
+                'vip_discount' => $vip_discount,
+                'discount' => $discount,
+                'invoice_id' => $invoice->id,
+                'invoice_date' => $invoice->created_at,
+                'due_date' => $invoice->due_date
+            ];
+
+            return ResponseHelper::success($invoiceData, 'Invoice data retrieved.', 200);
+
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            // Log specific exception for debugging
+            \Log::error("Invoice not found: " . $e->getMessage());
+
+            // Return error response using ResponseHelper for model not found
+            return ResponseHelper::error('Invoice not found.', 404);
+
+        } catch (\Exception $e) {
+            // Log the general exception for debugging
+            \Log::error("Error generating invoice PDF: " . $e->getMessage());
+
+            // Return error response using ResponseHelper for any other errors
+            return ResponseHelper::error('Failed to generate invoice. Please try again later.', 500);
+        }
+
+    }
     public function downloadInvoice($invoice_id)
     {
         try {
