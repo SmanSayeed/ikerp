@@ -154,5 +154,8 @@ Route::get('/sync', [PowerDataController::class, 'syncSqlite']);
 Route::prefix('invoice')->group(function () {
 
     Route::get('/generate', [InvoiceController::class, 'generateInvoice']);
-    Route::get('/download', [InvoiceController::class, 'downloadInvoice']);
+    Route::get('/download/{invoice_id}', [InvoiceController::class, 'downloadInvoice']);
+    Route::get('/list', [InvoiceController::class, 'getInvoices']);
+    Route::put('/update', [InvoiceController::class, 'updateInvoice']);
+    Route::delete('/delete', [InvoiceController::class, 'updateInvoice']);
 });

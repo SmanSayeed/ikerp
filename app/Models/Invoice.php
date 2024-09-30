@@ -20,6 +20,7 @@ class Invoice extends Model
         'total_cost',
         'discount',
         'original_cost',
+        'due_date'
     ];
 
     /**

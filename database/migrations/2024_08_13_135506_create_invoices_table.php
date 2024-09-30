@@ -21,6 +21,7 @@ return new class extends Migration
             $table->string('client_is_vip')->nullable();
             $table->string('client_vip_discount')->nullable();
             $table->string('date_range');
+            $table->string('due_date')->nullable();
             $table->enum('invoice_status', ['paid', 'unpaid', 'cancelled']);
             $table->text('address')->nullable();
             $table->decimal('discount', 10, 2)->nullable();

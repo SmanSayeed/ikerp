@@ -31,6 +31,7 @@ class InvoiceResource extends JsonResource
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             'id' => $this->id,
+            'due_date'=>$this->due_date
 
         ];
     }

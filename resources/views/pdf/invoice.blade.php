@@ -73,8 +73,8 @@
         <!-- Invoice Details -->
         <h3>Invoice Details</h3>
         <p>
-            Invoice Number (Factuurnummer): 2015-0038<br>
-            Invoice Date (Factuurdatum): {{ \Carbon\Carbon::now()->format('d-m-Y') }}<br>
+            Invoice Number (Factuurnummer): {{ $invoice_id }}<br>
+            Invoice Date (Factuurdatum): {{ $invoice_date }}<br>
             Due Date (Vervaldatum): {{ \Carbon\Carbon::now()->addDays(14)->format('d-m-Y') }}
         </p>
 

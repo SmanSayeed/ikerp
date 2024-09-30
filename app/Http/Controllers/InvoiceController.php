@@ -24,91 +24,252 @@ class InvoiceController extends Controller
 
     public function generateInvoice(Request $request)
     {
-        // Get 'from' and 'to' dates and client_id from the request
+        // Validate the request to ensure 'from', 'to', and 'client_id' are provided
+        $request->validate([
+            'from' => 'required|date',
+            'to' => 'required|date|after_or_equal:from',
+            'due_date' => 'nullable|date|after_or_equal:from',
+            'client_id' => 'required|exists:clients,id', // Assuming clients are in a 'clients' table
+        ]);
+
+        // Get 'from', 'to' dates, and client_id from the request
         $from = $request->input('from');
         $to = $request->input('to');
         $client_id = $request->input('client_id');
 
-        // Fetch invoice data from the service
-        $invoiceData = $this->invoiceService->getInvoiceData($from, $to, $client_id);
+        try {
+            // Check if an invoice already exists for the given client and date range
+            $existingInvoice = Invoice::where('client_id', $client_id)
+                ->where('date_range', $from . ' to ' . $to)
+                ->first();
 
-        // dd($invoiceData);
-        // Check if data exists to prevent saving empty data
-        if (empty($invoiceData['data'])) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'No usage data found for this client in the given date range.',
-            ], 400);
+            if ($existingInvoice) {
+                return ResponseHelper::error('An invoice for this client already exists for the specified date range.', 400);
+            }
+
+            // Fetch invoice data from the service
+            $invoiceData = $this->invoiceService->getInvoiceData($from, $to, $client_id);
+
+            // Check if data exists to prevent saving empty data
+            if (empty($invoiceData['data'])) {
+                return ResponseHelper::error('No usage data found for this client in the given date range.', 400);
+            }
+
+            // Create a new invoice
+            $invoice = Invoice::create([
+                'client_id' => $invoiceData['client']->id,
+                'client_name' => $invoiceData['client']->name,
+                'client_email' => $invoiceData['client']->email,
+                'client_phone' => $invoiceData['client']->phone,
+                'client_address' => $invoiceData['client']->address,
+                'client_is_vip' => $invoiceData['client']->is_vip,
+                'client_vip_discount' => $invoiceData['client']->vip_discount,
+                'date_range' => $from . ' to ' . $to,
+                'invoice_status' => 'unpaid', // Assuming default status is unpaid
+                'device_usage_details' => json_encode($invoiceData['data']), // Store device details as JSON
+                'original_cost' => $invoiceData['originalInvoiceCost'],
+                'total_cost' => $invoiceData['totalInvoiceCost'],
+                'discount' => $invoiceData['discount'],
+                'due_date' => $invoiceData['due_date']
+            ]);
+
+            // Return the response using ResponseHelper
+            return ResponseHelper::success(new InvoiceResource($invoice), 'Invoice generated and saved successfully');
+        } catch (\Exception $e) {
+            // Log the exception for debugging
+            \Log::error('Invoice generation failed: ' . $e->getMessage());
+
+            // Return an error response
+            return ResponseHelper::error('An error occurred while generating the invoice. Please try again later.', 500);
         }
-        // dd($invoiceData);
-        // Create a new invoice
-        $invoice = Invoice::create([
-            'client_id' => $invoiceData['client']->id,
-            'client_name' => $invoiceData['client']->name,
-            'client_email' => $invoiceData['client']->email,
-            'client_phone' => $invoiceData['client']->phone,
-            'client_address' => $invoiceData['client']->address,
-            'client_is_vip' => $invoiceData['client']->is_vip,
-            'client_vip_discount' => $invoiceData['client']->vip_discount,
-            'date_range' => $from . ' to ' . $to,
-            'invoice_status' => 'unpaid', // Assuming default status is unpaid
-            'device_usage_details' => json_encode($invoiceData['data']), // Store device details as JSON
-            'original_cost'=>$invoiceData['originalInvoiceCost'],
-            'total_cost' => $invoiceData['totalInvoiceCost'],
-            'discount'=>$invoiceData['discount'],
+    }
+
+    public function updateInvoice(Request $request, $invoice_id)
+    {
+        // Validate incoming request data
+        $request->validate([
+            'client_name' => 'nullable|string',
+            'client_email' => 'nullable|email',
+            'client_phone' => 'nullable|string',
+            'client_address' => 'nullable|string',
+            'invoice_status' => 'nullable|in:paid,unpaid,cancelled',
+            'total_cost' => 'nullable|numeric',
+            'discount' => 'nullable|numeric',
+            'due_date' => 'nullable|date',
         ]);
 
-        // Return the response using InvoiceResource
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Invoice generated and saved successfully',
-            'data' => new InvoiceResource($invoice),
-        ]);
+        try {
+            // Find the invoice by its ID or fail
+            $invoice = Invoice::findOrFail($invoice_id);
+
+            // Update the invoice details
+            $invoice->update($request->only([
+                'client_name', 'client_email', 'client_phone',
+                'client_address', 'invoice_status', 'total_cost',
+                'discount', 'due_date'
+            ]));
+
+            // Return success response with updated invoice
+            return ResponseHelper::success(new InvoiceResource($invoice), 'Invoice updated successfully');
+
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            // Log specific exception for debugging
+            \Log::error("Invoice not found: " . $e->getMessage());
+
+            // Return error response using ResponseHelper for model not found
+            return ResponseHelper::error('Invoice not found.', 404);
+
+        } catch (\Exception $e) {
+            // Log the general exception for debugging
+            \Log::error("Error updating invoice: " . $e->getMessage());
+
+            // Return error response using ResponseHelper for any other errors
+            return ResponseHelper::error('Failed to update invoice. Please try again later.', 500);
+        }
+    }
+
+    public function deleteInvoice($invoice_id)
+    {
+        try {
+            // Find the invoice by its ID or fail
+            $invoice = Invoice::findOrFail($invoice_id);
+
+            // Delete the invoice
+            $invoice->delete();
+
+            // Return success response
+            return ResponseHelper::success([], 'Invoice deleted successfully');
+
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            // Log specific exception for debugging
+            \Log::error("Invoice not found: " . $e->getMessage());
+
+            // Return error response using ResponseHelper for model not found
+            return ResponseHelper::error('Invoice not found.', 404);
+
+        } catch (\Exception $e) {
+            // Log the general exception for debugging
+            \Log::error("Error deleting invoice: " . $e->getMessage());
+
+            // Return error response using ResponseHelper for any other errors
+            return ResponseHelper::error('Failed to delete invoice. Please try again later.', 500);
+        }
     }
 
 
-    public function downloadInvoice(Request $request)
+    public function downloadInvoice($invoice_id)
     {
-        // Validate the request to ensure invoice_id is provided
-        $request->validate([
-            'invoice_id' => 'required|exists:invoices,id',
-        ]);
+        try {
+            // Fetch the invoice using the invoice_id from the request
+            $invoice = Invoice::with('client')->findOrFail($invoice_id);
 
-        // Fetch the invoice using the invoice_id from the request
-        $invoice = Invoice::with('client')->findOrFail($request->input('invoice_id'));
+            if (!$invoice) {
+                throw new \Exception('Invoice not found');
+            }
+            // Get the client details and device usage details
+            $client = [
+                'name' => $invoice->client_name,
+                'address' => $invoice->client_address,
+                'vip_discount' => $invoice->client_vip_discount,
+            ];
 
-        // Get the client details and device usage details
-        $client = [
-            'name' => $invoice->client_name,
-            'address' => $invoice->client_address,
-            'vip_discount' => $invoice->client_vip_discount,
-        ];
+            // Ensure device usage details is properly decoded into an array
+            $deviceUsageDetails = json_decode($invoice->device_usage_details, true);
 
-        // Ensure device usage details is properly decoded into an array
-        $deviceUsageDetails = json_decode($invoice->device_usage_details, true);
+            // Calculate original and discounted total
+            $originalInvoiceCost = $invoice->original_cost;
+            $totalInvoiceCost = $invoice->total_cost;
+            $discount = $invoice->discount;
+            $vip_discount = $invoice->client_vip_discount;
 
-        // Calculate original and discounted total
-        $originalInvoiceCost = $invoice->original_cost;
-        $totalInvoiceCost = $invoice->total_cost;
-        $discount = $invoice->discount;
-        $vip_discount = $invoice->client_vip_discount;
+            // Pass the invoice data to the Blade view
+            $pdf = Pdf::loadView('pdf.invoice', [
+                'client' => $client,
+                'data' => $deviceUsageDetails,
+                'originalInvoiceCost' => $originalInvoiceCost,
+                'totalInvoiceCost' => $totalInvoiceCost,
+                'vip_discount' => $vip_discount,
+                'discount' => $discount,
+                'invoice_id' => $invoice->id,
+                'invoice_date' => $invoice->created_at,
+                'due_date' => $invoice->due_date
+            ]);
 
-        // Pass the invoice data to the Blade view
-        $pdf = Pdf::loadView('pdf.invoice', [
-            'client' => $client,
-            'data' => $deviceUsageDetails,
-            'originalInvoiceCost' => $originalInvoiceCost,
-            'totalInvoiceCost' => $totalInvoiceCost,
-            'vip_discount'=>$vip_discount,
-            'discount'=>$discount
-        ]);
+            // Generate a filename with the current date and time
+            $timestamp = \Carbon\Carbon::now()->format('Y-m-d_H-i-s');
+            $fileName = "invoice_{$invoice->id}_{$timestamp}.pdf";
 
-        // Generate a filename with the current date and time
-        $timestamp = \Carbon\Carbon::now()->format('Y-m-d_H-i-s');
-        $fileName = "invoice_{$invoice->id}_{$timestamp}.pdf";
+            // Return the PDF as a download
+            return $pdf->download($fileName);
 
-        // Return the PDF as a download
-        return $pdf->download($fileName);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            // Log specific exception for debugging
+            \Log::error("Invoice not found: " . $e->getMessage());
+
+            // Return error response using ResponseHelper for model not found
+            return ResponseHelper::error('Invoice not found.', 404);
+
+        } catch (\Exception $e) {
+            // Log the general exception for debugging
+            \Log::error("Error generating invoice PDF: " . $e->getMessage());
+
+            // Return error response using ResponseHelper for any other errors
+            return ResponseHelper::error('Failed to generate invoice. Please try again later.', 500);
+        }
+
+    }
+
+    public function getInvoices(Request $request)
+    {
+        try {
+            // Start building the query
+            $query = Invoice::query();
+
+            $perPage = 100;
+            if ($request->filled('perPage')) {
+                $perPage = $request->input('perPage');
+            }
+            // Apply filters based on request parameters
+            if ($request->filled('invoice_id')) {
+                $query->where('id', $request->input('invoice_id'));
+            }
+
+            if ($request->filled('created_date')) {
+                $query->whereDate('created_at', $request->input('created_date'));
+            }
+
+            if ($request->filled('client_id')) {
+                $query->where('client_id', $request->input('client_id'));
+            }
+
+            if ($request->filled('invoice_status')) {
+                $query->where('invoice_status', $request->input('invoice_status'));
+            }
+
+            // Common search filter
+            if ($request->filled('search')) {
+                $searchTerm = $request->input('search');
+                $query->where(function ($subQuery) use ($searchTerm) {
+                    $subQuery->where('client_name', 'like', '%' . $searchTerm . '%')
+                        ->orWhere('client_email', 'like', '%' . $searchTerm . '%')
+                        ->orWhere('client_phone', 'like', '%' . $searchTerm . '%')
+                        ->orWhere('date_range', 'like', '%' . $searchTerm . '%');
+                });
+            }
+
+            // Get the invoices in descending order, with pagination
+            $invoices = $query->orderBy('created_at', 'desc')->paginate($perPage); // Change 10 to your desired page size
+
+            // Return the success response using ResponseHelper
+            return ResponseHelper::success($invoices);
+
+        } catch (\Exception $e) {
+            // Log the error message for debugging purposes
+            \Log::error('Error fetching invoices: ' . $e->getMessage());
+
+            // Return the error response using ResponseHelper
+            return ResponseHelper::error('Failed to fetch invoices. Please try again later.', 500);
+        }
     }
 
 
@@ -155,7 +316,7 @@ class InvoiceController extends Controller
         if ($from && $to) {
             // If both 'from' and 'to' are provided, filter between those dates
             $query->whereDate('time', '>=', $from)
-                  ->whereDate('time', '<=', $to);
+                ->whereDate('time', '<=', $to);
         } elseif ($from) {
             // If only 'from' is provided, filter for that specific date only (== from)
             $query->whereDate('time', '=', $from);
