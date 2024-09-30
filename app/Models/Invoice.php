@@ -6,11 +6,47 @@ use Illuminate\Database\Eloquent\Model;
 class Invoice extends Model
 {
     protected $fillable = [
-        'client_id', 'date_range', 'invoice_type', 'invoice_status', 'address', 'device_usage_details', 'total_price'
+        'client_id',
+        'client_name',
+        'client_email',
+        'client_phone',
+        'client_address',
+        'client_is_vip',
+        'client_vip_discount',
+        'date_range',
+        'invoice_status',
+        'address',
+        'device_usage_details',
+        'total_cost',
+        'discount',
+        'original_cost',
     ];
 
+    /**
+     * Relationship: Invoice belongs to a client.
+     */
     public function client()
     {
         return $this->belongsTo(Client::class);
+    }
+
+    /**
+     * Mutator: Set device usage details as JSON.
+     *
+     * @param array $value
+     */
+    public function setDeviceUsageDetailsAttribute($value)
+    {
+        $this->attributes['device_usage_details'] = json_encode($value);
+    }
+
+    /**
+     * Accessor: Get device usage details as an array.
+     *
+     * @return array
+     */
+    public function getDeviceUsageDetailsAttribute($value)
+    {
+        return json_decode($value, true);
     }
 }

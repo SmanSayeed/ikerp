@@ -8,7 +8,7 @@ class Client extends Authenticatable
 {
     use HasApiTokens, Notifiable, SoftDeletes;
     protected $fillable = [
-        'name', 'email', 'address', 'phone', 'payment_due_date', 'vat_slab', 'gbs_information', 'is_vip', 'vip_discount', 'email_verified_at', 'status', 'parent_client_id', 'user_id', 'type','password','is_seller'
+        'name', 'email', 'address', 'phone', 'payment_due_date', 'vat_slab', 'gbs_information', 'is_vip', 'vip_discount', 'email_verified_at', 'status', 'parent_client_id', 'user_id', 'type','password','is_seller','last_synced','client_remotik_id'
     ];
 
     protected $casts = [

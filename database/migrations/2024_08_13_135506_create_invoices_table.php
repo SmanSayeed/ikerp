@@ -13,13 +13,20 @@ return new class extends Migration
     {
         Schema::create('invoices', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('client_id')->constrained('clients')->onDelete('cascade');
+            $table->foreignId('client_id');
+            $table->string('client_name')->nullable();
+            $table->string('client_email')->nullable();
+            $table->string('client_phone')->nullable();
+            $table->string('client_address')->nullable();
+            $table->string('client_is_vip')->nullable();
+            $table->string('client_vip_discount')->nullable();
             $table->string('date_range');
-            $table->string('invoice_type');
             $table->enum('invoice_status', ['paid', 'unpaid', 'cancelled']);
             $table->text('address')->nullable();
-            $table->text('device_usage_details')->nullable();
-            $table->decimal('total_price', 10, 2);
+            $table->decimal('discount', 10, 2)->nullable();
+            $table->text('device_usage_details')->nullable(); // array of objects json string
+            $table->decimal('total_cost', 10, 2);
+            $table->decimal('original_cost', 10, 2);
             $table->timestamps();
         });
     }

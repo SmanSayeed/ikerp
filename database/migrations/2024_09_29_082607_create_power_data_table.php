@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('power_data', function (Blueprint $table) {
             $table->id();
+            $table->integer('remotik_power_id')->unique();
             $table->foreignId('client_id')->constrained('clients')->onDelete('cascade');
             $table->timestamp('time')->nullable(); // This will hold the timestamp as datetime
             $table->string('nodeid');

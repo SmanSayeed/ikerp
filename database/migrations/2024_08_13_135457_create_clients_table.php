@@ -27,6 +27,7 @@ return new class extends Migration
             $table->decimal('vip_discount', 8, 2)->nullable();
             $table->timestamp('email_verified_at')->nullable();
             $table->boolean('status')->default(true);
+            $table->timestamp('last_synced')->nullable();
             $table->foreignId('parent_client_id')->nullable()->constrained('clients')->onDelete('cascade');
             $table->softDeletes();
             $table->timestamps();

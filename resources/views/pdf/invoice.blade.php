@@ -45,42 +45,75 @@
 </head>
 <body>
     <div class="invoice-box">
+        <!-- Client Information -->
         <table width="100%">
             <tr>
                 <td>
-                    <h2>Company Name</h2>
-                    <p>Address Line 1<br>Address Line 2<br>City, Country</p>
+                    <h3>{{ $client['name'] }}</h3>
+                    @if($client['address'])
+                        <p>{{ $client['address'] }}</p>
+                    @else
+                        <p>No Address Provided</p>
+                    @endif
                 </td>
+                <!-- Shop Information -->
                 <td class="company-details">
                     <img src="{{ asset('images/logo.png') }}" alt="Company Logo">
+                    <h3>Shop Name</h3>
+                    <p>
+                        Address: Laan van Zuid Hoorn 60, 2289DE Rijswijk<br>
+                        VAT Number (BTW nr.): NL123456789B01<br>
+                        Chamber of Commerce Number (KvK nr.): 123456789<br>
+                        IBAN: NL21ABNA0532484010
+                    </p>
                 </td>
             </tr>
         </table>
 
-        <h2>Invoice</h2>
+        <!-- Invoice Details -->
+        <h3>Invoice Details</h3>
+        <p>
+            Invoice Number (Factuurnummer): 2015-0038<br>
+            Invoice Date (Factuurdatum): {{ \Carbon\Carbon::now()->format('d-m-Y') }}<br>
+            Due Date (Vervaldatum): {{ \Carbon\Carbon::now()->addDays(14)->format('d-m-Y') }}
+        </p>
 
+        <!-- Invoice Table -->
         <table class="table">
             <thead>
                 <tr>
                     <th>Node</th>
                     <th>No of Days</th>
                     <th>Unit Price (€)</th>
-                    <th>Total (€)</th>
+                    <th>Original Total (€)</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach($data as $item)
-                <tr>
-                    <td>{{ $item['node_name'] }}</td>
-                    <td>{{ $item['days_active'] }}</td>
-                    <td>€{{ number_format($item['price_per_day'], 2) }}</td>
-                    <td>€{{ number_format($item['total'], 2) }}</td>
-                </tr>
+                    <tr>
+                        <td>{{ $item['node_name'] }}</td>
+                        <td>{{ $item['days_active'] }}</td>
+                        <td>€{{ number_format($item['price_per_day'], 2) }}</td>
+                        <td>€{{ number_format($item['original_total'], 2) }}</td>
+
+                    </tr>
                 @endforeach
                 <tr class="total">
-                    <td colspan="3">Grand Total</td>
-                    <td>€{{ number_format($totalInvoiceCost, 2) }}</td>
+                    <td colspan="3"> Total</td>
+                    <td>€{{ number_format($originalInvoiceCost, 2) }}</td>
                 </tr>
+                <tr class="total">
+                    <td colspan="3"> Discount({{$vip_discount ?? 0}}%)</td>
+                    <td>€{{ number_format($discount, 2) }}</td>
+                </tr>
+                <tr class="total">
+                    {{-- @if($totalInvoiceCost < $originalInvoiceCost) --}}
+                        <td colspan="3">Grand Total</td>
+                        <td>€{{ number_format($totalInvoiceCost, 2) }}</td>
+                    {{-- @endif --}}
+                </tr>
+
+
             </tbody>
         </table>
     </div>

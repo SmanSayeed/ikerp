@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Helpers\ResponseHelper;
+use App\Http\Resources\InvoiceResource;
+use App\Models\Invoice;
 use App\Models\PowerData;
 use App\Services\InvoiceService;
 use Illuminate\Http\Request;
@@ -19,49 +21,124 @@ class InvoiceController extends Controller
     {
         $this->invoiceService = $invoiceService;
     }
+
     public function generateInvoice(Request $request)
     {
-         // Get 'from' and 'to' dates from the request
-         $from = $request->input('from');
-         $to = $request->input('to');
+        // Get 'from' and 'to' dates and client_id from the request
+        $from = $request->input('from');
+        $to = $request->input('to');
+        $client_id = $request->input('client_id');
 
-          // Fetch invoice data from the service
-          $invoiceData = $this->invoiceService->getInvoiceData($from, $to);
+        // Fetch invoice data from the service
+        $invoiceData = $this->invoiceService->getInvoiceData($from, $to, $client_id);
 
-         // Download the generated PDF
-         return response()->json(  $invoiceData);
+        // dd($invoiceData);
+        // Check if data exists to prevent saving empty data
+        if (empty($invoiceData['data'])) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'No usage data found for this client in the given date range.',
+            ], 400);
+        }
+        // dd($invoiceData);
+        // Create a new invoice
+        $invoice = Invoice::create([
+            'client_id' => $invoiceData['client']->id,
+            'client_name' => $invoiceData['client']->name,
+            'client_email' => $invoiceData['client']->email,
+            'client_phone' => $invoiceData['client']->phone,
+            'client_address' => $invoiceData['client']->address,
+            'client_is_vip' => $invoiceData['client']->is_vip,
+            'client_vip_discount' => $invoiceData['client']->vip_discount,
+            'date_range' => $from . ' to ' . $to,
+            'invoice_status' => 'unpaid', // Assuming default status is unpaid
+            'device_usage_details' => json_encode($invoiceData['data']), // Store device details as JSON
+            'original_cost'=>$invoiceData['originalInvoiceCost'],
+            'total_cost' => $invoiceData['totalInvoiceCost'],
+            'discount'=>$invoiceData['discount'],
+        ]);
 
+        // Return the response using InvoiceResource
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Invoice generated and saved successfully',
+            'data' => new InvoiceResource($invoice),
+        ]);
     }
 
 
     public function downloadInvoice(Request $request)
     {
-        try {
-            // Get 'from' and 'to' dates from the request
-            $from = $request->input('from');
-            $to = $request->input('to');
+        // Validate the request to ensure invoice_id is provided
+        $request->validate([
+            'invoice_id' => 'required|exists:invoices,id',
+        ]);
 
-            // Fetch invoice data from the service
-            $invoiceData = $this->invoiceService->getInvoiceData($from, $to);
+        // Fetch the invoice using the invoice_id from the request
+        $invoice = Invoice::with('client')->findOrFail($request->input('invoice_id'));
 
-            // Generate the PDF
-            $pdf = Pdf::loadView('pdf.invoice', [
-                'data' => $invoiceData['data'],
-                'totalInvoiceCost' => $invoiceData['totalInvoiceCost']
-            ]);
+        // Get the client details and device usage details
+        $client = [
+            'name' => $invoice->client_name,
+            'address' => $invoice->client_address,
+            'vip_discount' => $invoice->client_vip_discount,
+        ];
 
-            // Generate a filename with the current date and time
-            $timestamp = Carbon::now()->format('Y-m-d_H-i-s');
-            $fileName = "invoice_{$timestamp}.pdf";
+        // Ensure device usage details is properly decoded into an array
+        $deviceUsageDetails = json_decode($invoice->device_usage_details, true);
 
-            // Download the generated PDF
-            return $pdf->download($fileName);
-        } catch (\Exception $e) {
-            // Handle any errors and return a standardized error response
-            return ResponseHelper::error('An error occurred while generating the invoice.', 500, ['error' => $e->getMessage()]);
-        }
+        // Calculate original and discounted total
+        $originalInvoiceCost = $invoice->original_cost;
+        $totalInvoiceCost = $invoice->total_cost;
+        $discount = $invoice->discount;
+        $vip_discount = $invoice->client_vip_discount;
 
+        // Pass the invoice data to the Blade view
+        $pdf = Pdf::loadView('pdf.invoice', [
+            'client' => $client,
+            'data' => $deviceUsageDetails,
+            'originalInvoiceCost' => $originalInvoiceCost,
+            'totalInvoiceCost' => $totalInvoiceCost,
+            'vip_discount'=>$vip_discount,
+            'discount'=>$discount
+        ]);
+
+        // Generate a filename with the current date and time
+        $timestamp = \Carbon\Carbon::now()->format('Y-m-d_H-i-s');
+        $fileName = "invoice_{$invoice->id}_{$timestamp}.pdf";
+
+        // Return the PDF as a download
+        return $pdf->download($fileName);
     }
+
+
+
+
+    // public function downloadInvoice(Request $request)
+    // {
+    //     try {
+    //         // Get 'from' and 'to' dates from the request
+    //         $from = $request->input('from');
+    //         $to = $request->input('to');
+    //         $client_id = $request->input('client_id');
+    //         // Fetch invoice data from the service
+    //         $invoiceData = $this->invoiceService->getInvoiceData($from, $to,$client_id);
+
+    //         // Generate the PDF
+    //         $pdf = Pdf::loadView('pdf.invoice', $invoiceData);
+
+    //         // Generate a filename with the current date and time
+    //         $timestamp = Carbon::now()->format('Y-m-d_H-i-s');
+    //         $fileName = "invoice_{$timestamp}.pdf";
+
+    //         // Download the generated PDF
+    //         return $pdf->download($fileName);
+    //     } catch (\Exception $e) {
+    //         // Handle any errors and return a standardized error response
+    //         return ResponseHelper::error('An error occurred while generating the invoice.', 500, ['error' => $e->getMessage()]);
+    //     }
+
+    // }
 
     public function filterPowerUsage(Request $request)
     {
