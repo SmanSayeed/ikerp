@@ -18,7 +18,7 @@ class InvoiceService
      * @param string|null $to
      * @return array
      */
-    public function getInvoiceData($from = null, $to = null, $client_id)
+    public function getInvoiceData($from = null, $to = null, $client_id,$due_date=null)
     {
         // Fetch client information
         $clientData = Client::find($client_id);
@@ -81,7 +81,8 @@ class InvoiceService
             'discountPercentage' => $discountPercentage,
             'from' => $from,
             'to' => $to,
-            'client' => $clientData
+            'client' => $clientData,
+            'due_date'=>$due_date
         ];
     }
 
