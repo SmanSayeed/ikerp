@@ -214,6 +214,49 @@ class InvoiceController extends Controller
         }
 
     }
+    public function previewInvoice($invoice_id)
+{
+    try {
+        // Fetch the invoice using the invoice_id from the request
+        $invoice = Invoice::with('client')->findOrFail($invoice_id);
+
+        // Get the client details and device usage details
+        $client = [
+            'name' => $invoice->client_name,
+            'address' => $invoice->client_address,
+            'vip_discount' => $invoice->client_vip_discount,
+        ];
+
+        // Ensure device usage details is properly decoded into an array
+        $deviceUsageDetails = json_decode($invoice->device_usage_details, true);
+
+        // Prepare the invoice data
+        $pdf = Pdf::loadView('pdf.invoice', [
+            'client' => $client,
+            'data' => $deviceUsageDetails,
+            'originalInvoiceCost' => $invoice->original_cost,
+            'totalInvoiceCost' => $invoice->total_cost,
+            'vip_discount' => $invoice->client_vip_discount,
+            'discount' => $invoice->discount,
+            'invoice_id' => $invoice->id,
+            'invoice_date' => $invoice->created_at,
+            'due_date' => $invoice->due_date,
+        ]);
+                    // Generate a filename with the current date and time
+        // $timestamp = \Carbon\Carbon::now()->format('Y-m-d_H-i-s');
+        $fileName = "invoice_{$invoice->id}_{$invoice->created_at}.pdf";
+
+        // Return the generated PDF as a response (Blob)
+        return response($pdf->output(), 200)
+            ->header('Content-Type', 'application/pdf')
+            ->header('Content-Disposition', 'inline');
+
+    } catch (\Exception $e) {
+        return response()->json(['error' => 'Failed to generate PDF'], 500);
+    }
+}
+
+
     public function downloadInvoice($invoice_id)
     {
         try {
@@ -258,6 +301,9 @@ class InvoiceController extends Controller
 
             // Return the PDF as a download
             return $pdf->download($fileName);
+            // return response($pdf->output(), 200)
+            // ->header('Content-Type', 'application/pdf')
+            // ->header('Content-Disposition', 'attachment; filename="'.$fileName.'"');
 
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             // Log specific exception for debugging
