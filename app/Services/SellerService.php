@@ -19,25 +19,18 @@ class SellerService
      */
     public function registerSeller(array $data, int $clientId): Seller
     {
-        try {
-            $client = Client::findOrFail($clientId);
 
+            $client = Client::findOrFail($clientId);
             // Check if client is already a seller
             if ($client->is_seller) {
                 throw new Exception('Client is already a seller.');
             }
-
-            
             $data['status']=false;
             $seller = Seller::create(array_merge($data, ['client_id' => $clientId]));
             // Update client's is_seller status
             $client->update(['is_seller' => true]);
             return $seller;
-        } catch (ModelNotFoundException $e) {
-            throw new Exception('Client not found.');
-        } catch (Exception $e) {
-            throw new Exception('An error occurred while registering the seller.');
-        }
+
     }
 
     /**

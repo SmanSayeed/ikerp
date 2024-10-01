@@ -19,6 +19,10 @@ class ClientBecomesSellerRequest extends FormRequest
 
         $clientId = Auth::id();
         return [
+            'company_name'=>'required',
+            'company_address'=>'nullable',
+            'company_vat_number'=>'required|unique:sellers,company_vat_number',
+            'company_kvk_number'=>'required|unique:sellers,company_kvk_number',
             'client_id' => [
                 'required',
                 'exists:clients,id', // Ensure client_id exists in clients table
