@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Carbon;
+use Exception;
 
 class InvoiceController extends Controller
 {
@@ -73,12 +74,11 @@ class InvoiceController extends Controller
                 'discount' => $invoiceData['discount'],
                 'due_date' => $invoiceData['due_date']
             ]);
-
             // Return the response using ResponseHelper
             return ResponseHelper::success(new InvoiceResource($invoice), 'Invoice generated and saved successfully');
         } catch (\Exception $e) {
             // Log the exception for debugging
-            \Log::error('Invoice generation failed: ' . $e->getMessage());
+            \Log::error('Invoice generation failed: ' . $e);
 
             // Return an error response
             return ResponseHelper::error('An error occurred while generating the invoice. Please try again later.', 500);
@@ -215,111 +215,43 @@ class InvoiceController extends Controller
 
     }
     public function previewInvoice($invoice_id)
-{
-    try {
-        // Fetch the invoice using the invoice_id from the request
-        $invoice = Invoice::with('client')->findOrFail($invoice_id);
+    {
+        try {
+            // Use the service to fetch the invoice data
+            $invoiceData = $this->invoiceService->getPdfInvoiceData($invoice_id);
 
-        // Get the client details and device usage details
-        $client = [
-            'name' => $invoice->client_name,
-            'address' => $invoice->client_address,
-            'vip_discount' => $invoice->client_vip_discount,
-        ];
+            // Generate the PDF
+            $pdf = $this->invoiceService->generateInvoicePdf($invoiceData);
 
-        // Ensure device usage details is properly decoded into an array
-        $deviceUsageDetails = json_decode($invoice->device_usage_details, true);
+            // Return the generated PDF as a response
+            return response($pdf->output(), 200)
+                ->header('Content-Type', 'application/pdf')
+                ->header('Content-Disposition', 'inline');
 
-        // Prepare the invoice data
-        $pdf = Pdf::loadView('pdf.invoice', [
-            'client' => $client,
-            'data' => $deviceUsageDetails,
-            'originalInvoiceCost' => $invoice->original_cost,
-            'totalInvoiceCost' => $invoice->total_cost,
-            'vip_discount' => $invoice->client_vip_discount,
-            'discount' => $invoice->discount,
-            'invoice_id' => $invoice->id,
-            'invoice_date' => $invoice->created_at,
-            'due_date' => $invoice->due_date,
-        ]);
-                    // Generate a filename with the current date and time
-        // $timestamp = \Carbon\Carbon::now()->format('Y-m-d_H-i-s');
-        $fileName = "invoice_{$invoice->id}_{$invoice->created_at}.pdf";
-
-        // Return the generated PDF as a response (Blob)
-        return response($pdf->output(), 200)
-            ->header('Content-Type', 'application/pdf')
-            ->header('Content-Disposition', 'inline');
-
-    } catch (\Exception $e) {
-        return response()->json(['error' => 'Failed to generate PDF'], 500);
+        } catch (Exception $e) {
+            return response()->json(['error' => 'Failed to generate PDF'], 500);
+        }
     }
-}
-
 
     public function downloadInvoice($invoice_id)
     {
         try {
-            // Fetch the invoice using the invoice_id from the request
-            $invoice = Invoice::with('client')->findOrFail($invoice_id);
+            // Use the service to fetch the invoice data
+            $invoiceData = $this->invoiceService->getPdfInvoiceData($invoice_id);
 
-            if (!$invoice) {
-                throw new \Exception('Invoice not found');
-            }
-            // Get the client details and device usage details
-            $client = [
-                'name' => $invoice->client_name,
-                'address' => $invoice->client_address,
-                'vip_discount' => $invoice->client_vip_discount,
-            ];
-
-            // Ensure device usage details is properly decoded into an array
-            $deviceUsageDetails = json_decode($invoice->device_usage_details, true);
-
-            // Calculate original and discounted total
-            $originalInvoiceCost = $invoice->original_cost;
-            $totalInvoiceCost = $invoice->total_cost;
-            $discount = $invoice->discount;
-            $vip_discount = $invoice->client_vip_discount;
-
-            // Pass the invoice data to the Blade view
-            $pdf = Pdf::loadView('pdf.invoice', [
-                'client' => $client,
-                'data' => $deviceUsageDetails,
-                'originalInvoiceCost' => $originalInvoiceCost,
-                'totalInvoiceCost' => $totalInvoiceCost,
-                'vip_discount' => $vip_discount,
-                'discount' => $discount,
-                'invoice_id' => $invoice->id,
-                'invoice_date' => $invoice->created_at,
-                'due_date' => $invoice->due_date
-            ]);
+            // Generate the PDF
+            $pdf = $this->invoiceService->generateInvoicePdf($invoiceData);
 
             // Generate a filename with the current date and time
             $timestamp = \Carbon\Carbon::now()->format('Y-m-d_H-i-s');
-            $fileName = "invoice_{$invoice->id}_{$timestamp}.pdf";
+            $fileName = "invoice_{$invoice_id}_{$timestamp}.pdf";
 
             // Return the PDF as a download
             return $pdf->download($fileName);
-            // return response($pdf->output(), 200)
-            // ->header('Content-Type', 'application/pdf')
-            // ->header('Content-Disposition', 'attachment; filename="'.$fileName.'"');
 
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            // Log specific exception for debugging
-            \Log::error("Invoice not found: " . $e->getMessage());
-
-            // Return error response using ResponseHelper for model not found
-            return ResponseHelper::error('Invoice not found.', 404);
-
-        } catch (\Exception $e) {
-            // Log the general exception for debugging
-            \Log::error("Error generating invoice PDF: " . $e->getMessage());
-
-            // Return error response using ResponseHelper for any other errors
-            return ResponseHelper::error('Failed to generate invoice. Please try again later.', 500);
+        } catch (Exception $e) {
+            return response()->json(['error' => 'Failed to download invoice'], 500);
         }
-
     }
 
     public function getInvoices(Request $request)

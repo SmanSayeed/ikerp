@@ -6,6 +6,9 @@ use App\Models\PowerData;
 use App\Models\Client;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Carbon;
+use App\Models\Invoice;
+use Illuminate\Support\Facades\Log;
+use Exception;
 
 class InvoiceService
 {
@@ -84,6 +87,56 @@ class InvoiceService
             'client' => $clientData,
             'due_date'=>$due_date
         ];
+    }
+
+    public function getPdfInvoiceData($invoice_id)
+    {
+        try {
+            // Fetch the invoice with the client details
+            $invoice = Invoice::with('client')->findOrFail($invoice_id);
+
+            // Prepare client data
+            $client = [
+                'name' => $invoice->client_name,
+                'address' => $invoice->client_address,
+                'vip_discount' => $invoice->client_vip_discount,
+            ];
+
+            // Decode the device usage details from JSON to an array
+            $deviceUsageDetails = json_decode($invoice->device_usage_details, true);
+
+            // Prepare the necessary invoice data
+            $invoiceData = [
+                'client' => $client,
+                'data' => $deviceUsageDetails,
+                'originalInvoiceCost' => $invoice->original_cost,
+                'totalInvoiceCost' => $invoice->total_cost,
+                'vip_discount' => $invoice->client_vip_discount,
+                'discount' => $invoice->discount,
+                'invoice_id' => $invoice->id,
+                'invoice_date' => $invoice->created_at,
+                'due_date' => $invoice->due_date,
+            ];
+
+            return $invoiceData;
+        } catch (Exception $e) {
+            Log::error("Error fetching invoice: " . $e->getMessage());
+            throw new Exception('Error fetching invoice.');
+        }
+    }
+
+
+    public function generateInvoicePdf($invoiceData)
+    {
+        try {
+            // Load the PDF view with the data
+            $pdf = \Pdf::loadView('pdf.invoice', $invoiceData);
+
+            return $pdf;
+        } catch (Exception $e) {
+            Log::error("Error generating PDF: " . $e->getMessage());
+            throw new Exception('Error generating PDF.');
+        }
     }
 
 }
