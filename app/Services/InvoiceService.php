@@ -21,10 +21,10 @@ class InvoiceService
      * @param string|null $to
      * @return array
      */
-    public function getInvoiceData($from = null, $to = null, $client_id,$due_date=null)
+    public function getInvoiceData($from = null, $to = null, $client_remotik_id,$due_date=null)
     {
         // Fetch client information
-        $clientData = Client::find($client_id);
+        $clientData = Client::where('client_remotik_id', $client_remotik_id)->first();
 
         if (!$clientData) {
             // Return an empty response or handle it accordingly if client is not found
@@ -32,11 +32,11 @@ class InvoiceService
         }
 
         // Query to fetch PowerData for the specific client
-        $query = PowerData::select(DB::raw('client_id, nodeid, node_name, COUNT(DISTINCT DATE(time)) as days_active'))
+        $query = PowerData::select(DB::raw('client_id,client_remotik_id, nodeid, node_name, COUNT(DISTINCT DATE(time)) as days_active'))
             ->where('nodeid', '!=', '*')
             ->where('power', '=', 1)
-            ->where('client_id', $clientData->id) // Ensure it's filtering by client
-            ->groupBy('client_id', 'nodeid', 'node_name');
+            ->where('client_remotik_id', $clientData->client_remotik_id)
+            ->groupBy('client_id', 'client_remotik_id','nodeid', 'node_name');
 
         // Apply date filters
         if ($from && $to) {

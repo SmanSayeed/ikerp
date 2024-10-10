@@ -19,7 +19,7 @@ class PowerDataController extends Controller
 
     public function syncSqlite(Request $request)
     {
-        $client = Client::where('client_remotik_id', $request->input('client_id'))->first();
+        $client = Client::where('client_remotik_id', $request->input('client_remotik_id'))->first();
         if (!$client) {
             throw new \Exception('Client not found');
         }
@@ -64,6 +64,7 @@ class PowerDataController extends Controller
                             'node_name' => $item['node_name'], // Assuming node_name is present in the API response
                             'power' => $item['power'],
                             'client_id' => $client->id,
+                            'client_remotik_id'=>$client->client_remotik_id
                         ];
 
                         // Insert the data into MySQL

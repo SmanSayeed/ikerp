@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('invoices', function (Blueprint $table) {
             $table->id();
             $table->foreignId('client_id');
+            $table->string('client__remotik_id');
             $table->string('client_name')->nullable();
             $table->string('client_email')->nullable();
             $table->string('client_phone')->nullable();

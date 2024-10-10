@@ -30,18 +30,18 @@ class InvoiceController extends Controller
             'from' => 'required|date',
             'to' => 'required|date|after_or_equal:from',
             'due_date' => 'nullable|date|after_or_equal:from',
-            'client_id' => 'required|exists:clients,id', // Assuming clients are in a 'clients' table
+            'client_remotik_id' => 'required|exists:clients,client_remotik_id', // Assuming clients are in a 'clients' table
         ]);
 
         // Get 'from', 'to' dates, and client_id from the request
         $from = $request->input('from');
         $to = $request->input('to');
-        $client_id = $request->input('client_id');
+        $client_remotik_id = $request->input('client_remotik_id');
         $due_date = $request->input('due_date');
 
         try {
             // Check if an invoice already exists for the given client and date range
-            $existingInvoice = Invoice::where('client_id', $client_id)
+            $existingInvoice = Invoice::where('client_remotik_id', $client_remotik_id)
                 ->where('date_range', $from . ' to ' . $to)
                 ->first();
 
@@ -50,7 +50,7 @@ class InvoiceController extends Controller
             }
 
             // Fetch invoice data from the service
-            $invoiceData = $this->invoiceService->getInvoiceData($from, $to, $client_id,$due_date);
+            $invoiceData = $this->invoiceService->getInvoiceData($from, $to, $client_remotik_id,$due_date);
 
             // Check if data exists to prevent saving empty data
             if (empty($invoiceData['data'])) {
@@ -60,6 +60,7 @@ class InvoiceController extends Controller
             // Create a new invoice
             $invoice = Invoice::create([
                 'client_id' => $invoiceData['client']->id,
+                'client_remotik_id' => $invoiceData['client']->client_remotik_id,
                 'client_name' => $invoiceData['client']->name,
                 'client_email' => $invoiceData['client']->email,
                 'client_phone' => $invoiceData['client']->phone,
