@@ -11,87 +11,90 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use App\Helpers\ResponseHelper; // Helper for handling responses
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Http; // Import the HTTP client
 
 class PowerDataController extends Controller
 {
+
+
     public function syncSqlite(Request $request)
     {
-        $client = Client::find($request->input('client_id'));
-        if(!$client) {
+        $client = Client::where('client_remotik_id', $request->input('client_id'))->first();
+        if (!$client) {
             throw new \Exception('Client not found');
         }
 
         try {
-            // Fetch all data from the SQLite model
-            $data = SqliteModelPower::all()->toArray(); // Convert the collection to an array
-            $newRecords = 0; // Counter for the number of new records inserted
+            // Call the Node.js API to fetch power data
+            $response = Http::get('http://localhost:3000/api/power/client', [
+                'username' => $client->client_remotik_id, // Assuming username is fetched from client
+            ]);
 
-            foreach ($data as $item) {
-                $remotik_power_id = $item['id'];
+            // Check if the API call was successful
+            if ($response->successful()) {
+                $data = $response->json('data'); // Extract the 'data' array from the response
+                $newRecords = 0; // Counter for new records
 
-                // Check if remotik_power_id already exists in the power_data table
-                $existingEntry = PowerData::where('remotik_power_id', $remotik_power_id)->first();
+                foreach ($data as $item) {
+                    $remotik_power_id = $item['remotik_power_id'];
 
-                if ($existingEntry) {
-                    // If the remotik_power_id already exists, skip this entry
-                    continue;
-                }
+                    // Check if the remotik_power_id already exists
+                    $existingEntry = PowerData::where('remotik_power_id', $remotik_power_id)->first();
 
-                // Ensure 'doc' and 'time' fields exist
-                if (isset($item['doc']['time']) && isset($item['doc']['nodeid']) && isset($item['doc']['power'])) {
-                    // Convert the ISO 8601 formatted time to Carbon instance
-                    $dateTime = Carbon::parse($item['doc']['time'])->toDateTimeString();
-
-                    // Prepare the data for insertion
-                    $nodeid = $item['doc']['nodeid']; // Fetch nodeid
-                    if ($nodeid == "*") {
-                        // If the nodeid is '*', skip it
-                        continue;
+                    if ($existingEntry) {
+                        continue; // Skip if the ID already exists
                     }
 
-                    // Fetch node name from SqliteModelMain based on nodeid
-                    $node = SqliteModelMain::where('type', 'node')
-                        ->where('id', $nodeid)
-                        ->first();
+                    // Ensure the necessary fields exist
+                    if (isset($item['time']) && isset($item['nodeid']) && isset($item['power'])) {
+                        // Parse the datetime
+                        $dateTime = Carbon::parse($item['time'])->toDateTimeString();
 
-                    // Set node_name based on the fetched node data
-                    $nodeName = $node ? $node->doc["name"] : null; // Assign node name or null if not found
+                        // Prepare the data for insertion
+                        $nodeid = $item['nodeid'];
+                        if ($nodeid == "*") {
+                            continue; // Skip if nodeid is '*'
+                        }
 
-                    // Prepare the data to be inserted
-                    $createData = [
-                        'remotik_power_id' => $remotik_power_id,
-                        'time' => $dateTime,  // Correctly formatted datetime
-                        'nodeid' => $nodeid,  // Ensure it's properly formatted
-                        'node_name' => $nodeName, // Insert the node name
-                        'power' => $item['doc']['power'],
-                        'client_id' => $client->id,  // Assuming client_id is always 1
-                    ];
+                        // Prepare the data for insertion
+                        $createData = [
+                            'remotik_power_id' => $remotik_power_id,
+                            'time' => $dateTime,
+                            'nodeid' => $nodeid,
+                            'node_name' => $item['node_name'], // Assuming node_name is present in the API response
+                            'power' => $item['power'],
+                            'client_id' => $client->id,
+                        ];
 
-                    $client->update([
-                        'last_synced'=>Carbon::now(),
-                    ]);
-
-                    // Insert the data into the power_data table
-                    PowerData::create($createData);
-                    $newRecords++; // Increment the counter for each new record inserted
+                        // Insert the data into MySQL
+                        PowerData::create($createData);
+                        $newRecords++;
+                    }
                 }
-            }
 
-            // Check if any new records were inserted
-            if ($newRecords > 0) {
-                return ResponseHelper::success(
-                    ['new_records' => $newRecords],
-                    "$newRecords new record(s) have been synced successfully for client {$client->name}."
-                );
+                // Update client's last synced time
+                $client->update([
+                    'last_synced' => Carbon::now(),
+                ]);
+
+                // Return success response based on new records
+                if ($newRecords > 0) {
+                    return ResponseHelper::success(
+                        ['new_records' => $newRecords],
+                        "$newRecords new record(s) have been synced successfully for client {$client->name}."
+                    );
+                } else {
+                    return ResponseHelper::success(
+                        null,
+                        'No new data to sync.'
+                    );
+                }
             } else {
-                // No new data to sync
-                return ResponseHelper::success(
-                    null,
-                    'No new data to sync.'
-                );
+                // Handle failed API response
+                throw new \Exception('Failed to retrieve power data from the Node.js API.');
             }
         } catch (\Exception $e) {
-            // Handle any exception and return an error response
+            // Handle any exceptions
             Log::error($e->getMessage());
             return ResponseHelper::error(
                 'An error occurred while syncing data: ' . $e->getMessage(),
@@ -99,4 +102,5 @@ class PowerDataController extends Controller
             );
         }
     }
+
 }
