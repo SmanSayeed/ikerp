@@ -33,11 +33,18 @@ class InvoiceController extends Controller
             'client_remotik_id' => 'required|exists:clients,client_remotik_id', // Assuming clients are in a 'clients' table
         ]);
 
+
+
         // Get 'from', 'to' dates, and client_id from the request
         $from = $request->input('from');
         $to = $request->input('to');
         $client_remotik_id = $request->input('client_remotik_id');
         $due_date = $request->input('due_date');
+
+        $powerClient = PowerData::where('client_remotik_id', $client_remotik_id)->first();
+        if(!$powerClient) {
+            return null;
+        }
 
         try {
             // Check if an invoice already exists for the given client and date range
@@ -52,6 +59,9 @@ class InvoiceController extends Controller
             // Fetch invoice data from the service
             $invoiceData = $this->invoiceService->getInvoiceData($from, $to, $client_remotik_id,$due_date);
 
+            if(!$invoiceData){
+                return ResponseHelper::error('No Client found', 400);
+            }
             // Check if data exists to prevent saving empty data
             if (empty($invoiceData['data'])) {
                 return ResponseHelper::error('No usage data found for this client in the given date range.', 400);
