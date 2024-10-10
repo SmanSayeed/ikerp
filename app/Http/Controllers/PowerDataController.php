@@ -26,7 +26,7 @@ class PowerDataController extends Controller
 
         try {
             // Call the Node.js API to fetch power data
-            $response = Http::get('http://localhost:3000/api/power/client', [
+            $response = Http::get(env('NODE_API_URL'), [
                 'username' => $client->client_remotik_id, // Assuming username is fetched from client
             ]);
 
