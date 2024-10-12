@@ -10,7 +10,7 @@ use App\Models\Invoice;
 use Illuminate\Support\Facades\Log;
 use Exception;
 
-class InvoiceService
+class InvoiceChildClientService
 {
     protected $pricePerNode = 100; // Example constant price
 
@@ -21,10 +21,10 @@ class InvoiceService
      * @param string|null $to
      * @return array
      */
-    public function getInvoiceData($from = null, $to = null, $client_remotik_id,$due_date=null)
+    public function getChildClientInvoiceData($from = null, $to = null, $child_client_remotik_id,$due_date=null)
     {
         // Fetch client information
-        $clientData = Client::where('client_remotik_id', $client_remotik_id)->first();
+        $clientData = Client::where('client_remotik_id', $child_client_remotik_id)->first();
 
         if (!$clientData) {
             // Return an empty response or handle it accordingly if client is not found
@@ -32,11 +32,11 @@ class InvoiceService
         }
 
         // Query to fetch PowerData for the specific client
-        $query = PowerData::select(DB::raw('client_id,client_remotik_id, nodeid, node_name, COUNT(DISTINCT DATE(time)) as days_active'))
+        $query = PowerData::select(DB::raw('client_id,client_remotik_id,child_client_remotik_id, nodeid, node_name, COUNT(DISTINCT DATE(time)) as days_active'))
             ->where('nodeid', '!=', '*')
             ->where('power', '=', 1)
-            ->where('client_remotik_id', $clientData->client_remotik_id)
-            ->groupBy('client_id', 'client_remotik_id','nodeid', 'node_name');
+             ->where('child_client_remotik_id', $clientData->child_client_remotik_id)
+            ->groupBy('client_id', 'client_remotik_id','child_client_remotik_id','nodeid', 'node_name');
 
         // Apply date filters
         if ($from && $to) {
@@ -89,7 +89,6 @@ class InvoiceService
         ];
     }
 
-   
 
     public function getPdfInvoiceData($invoice_id)
     {
@@ -106,6 +105,7 @@ class InvoiceService
 
             // Decode the device usage details from JSON to an array
             $deviceUsageDetails = json_decode($invoice->device_usage_details, true);
+            $seller = $invoice->seller;
 
             // Prepare the necessary invoice data
             $invoiceData = [
@@ -118,6 +118,11 @@ class InvoiceService
                 'invoice_id' => $invoice->id,
                 'invoice_date' => $invoice->created_at,
                 'due_date' => $invoice->due_date,
+                'seller_id'=>$invoice->seller_id,
+                'invoice_generated_by_user_type'=>$invoice->invoice_generated_by_user_type,
+                'invoice_generated_by_id'=>$invoice->parent_client_remotik_id,
+                'for_child_client_remotik_id'=>$invoice->child_client_remotik_id,
+                $seller=>$seller
             ];
 
             return $invoiceData;
@@ -132,7 +137,7 @@ class InvoiceService
     {
         try {
             // Load the PDF view with the data
-            $pdf = \Pdf::loadView('pdf.invoice', $invoiceData);
+            $pdf = \Pdf::loadView('pdf.child-client-invoice', $invoiceData);
 
             return $pdf;
         } catch (Exception $e) {

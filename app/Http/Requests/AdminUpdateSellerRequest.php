@@ -29,6 +29,7 @@ class AdminUpdateSellerRequest extends FormRequest
             'company_logo' => 'nullable|string|max:255',
             'company_vat_number' => 'nullable',
             'company_kvk_number' => 'nullable',
+            'company_iban_number'=>'nullable|unique:sellers,company_iban_number',
             'status' => 'sometimes|boolean',
         ];
     }

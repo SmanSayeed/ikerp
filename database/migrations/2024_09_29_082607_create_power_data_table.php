@@ -18,13 +18,21 @@ return new class extends Migration
             $table->boolean('is_parent')->default(true);
 
             $table->boolean('is_child')->default(false);
-            $table->string('child_client_name')->nullable();
-            $table->string('client_remotik_id');
+
+            $table->string('client_remotik_id'); // Admin will bill for it
+
+            $table->string('child_client_remotik_id')->nullable();
+            // Seller client will bill for it
+
             $table->timestamp('time')->nullable(); // This will hold the timestamp as datetime
+
             $table->string('nodeid');
+
             $table->string('node_name');
              // Node ID
+
             $table->integer('power')->default(0); // Power, defaulting to 0
+
             $table->timestamps(); // Created_at and Updated_at timestamps
         });
     }

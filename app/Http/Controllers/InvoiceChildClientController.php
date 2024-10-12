@@ -6,7 +6,8 @@ use App\Helpers\ResponseHelper;
 use App\Http\Resources\InvoiceResource;
 use App\Models\Invoice;
 use App\Models\PowerData;
-use App\Services\InvoiceService;
+use App\Models\Seller;
+use App\Services\InvoiceChildClientService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -18,37 +19,41 @@ class InvoiceChildClientController extends Controller
 
     protected $invoiceService;
 
-    public function __construct(InvoiceService $invoiceService)
+    public function __construct(InvoiceChildClientService $invoiceService)
     {
         $this->invoiceService = $invoiceService;
     }
 
-    public function generateInvoice(Request $request)
+    public function generateChildClientInvoice(Request $request)
     {
         // Validate the request to ensure 'from', 'to', and 'client_id' are provided
         $request->validate([
             'from' => 'required|date',
             'to' => 'required|date|after_or_equal:from',
             'due_date' => 'nullable|date|after_or_equal:from',
-            'client_remotik_id' => 'required|exists:clients,client_remotik_id', // Assuming clients are in a 'clients' table
+            'parent_client_remotik_id' => 'required|exists:clients,client_remotik_id',
+            'child_client_remotik_id'=>'required|exists:clients,client_remotik_id'
         ]);
-
-
 
         // Get 'from', 'to' dates, and client_id from the request
         $from = $request->input('from');
-        $to = $request->input('to');
-        $client_remotik_id = $request->input('client_remotik_id');
-        $due_date = $request->input('due_date');
 
-        $powerClient = PowerData::where('client_remotik_id', $client_remotik_id)->first();
+        $to = $request->input('to');
+
+        $parent_client_remotik_id = $request->input('parent_client_remotik_id');
+
+        $due_date = $request->input('due_date');
+        $child_client_remotik_id = $request->input('child_client_remotik_id');
+
+        $powerClient = PowerData::where('client_remotik_id', $child_client_remotik_id)->first();
+
         if(!$powerClient) {
-            return null;
+            return ResponseHelper::error('Client not found', 400);
         }
 
         try {
             // Check if an invoice already exists for the given client and date range
-            $existingInvoice = Invoice::where('client_remotik_id', $client_remotik_id)
+            $existingInvoice = Invoice::where('client_remotik_id', $child_client_remotik_id)
                 ->where('date_range', $from . ' to ' . $to)
                 ->first();
 
@@ -57,7 +62,7 @@ class InvoiceChildClientController extends Controller
             }
 
             // Fetch invoice data from the service
-            $invoiceData = $this->invoiceService->getInvoiceData($from, $to, $client_remotik_id,$due_date);
+            $invoiceData = $this->invoiceService->getChildClientInvoiceData($from, $to, $child_client_remotik_id,$due_date);
 
             if(!$invoiceData){
                 return ResponseHelper::error('No Client found', 400);
@@ -66,6 +71,8 @@ class InvoiceChildClientController extends Controller
             if (empty($invoiceData['data'])) {
                 return ResponseHelper::error('No usage data found for this client in the given date range.', 400);
             }
+
+            $seller = Seller::where('client_id',$parent_client_remotik_id)->firstOrFail();
 
             // Create a new invoice
             $invoice = Invoice::create([
@@ -83,7 +90,11 @@ class InvoiceChildClientController extends Controller
                 'original_cost' => $invoiceData['originalInvoiceCost'],
                 'total_cost' => $invoiceData['totalInvoiceCost'],
                 'discount' => $invoiceData['discount'],
-                'due_date' => $invoiceData['due_date']
+                'due_date' => $invoiceData['due_date'],
+                'seller_id' => $seller->id,
+                'invoice_generated_by_user_type'=>'client',
+                'invoice_generated_by_id'=>$parent_client_remotik_id,
+                'for_child_client_remotik_id'=>$child_client_remotik_id
             ]);
             // Return the response using ResponseHelper
             return ResponseHelper::success(new InvoiceResource($invoice), 'Invoice generated and saved successfully');
@@ -206,7 +217,11 @@ class InvoiceChildClientController extends Controller
                 'discount' => $discount,
                 'invoice_id' => $invoice->id,
                 'invoice_date' => $invoice->created_at,
-                'due_date' => $invoice->due_date
+                'due_date' => $invoice->due_date,
+                'seller_id'=>$invoice->seller_id,
+                'invoice_generated_by_user_type'=>$invoice->invoice_generated_by_user_type,
+                'invoice_generated_by_id'=>$invoice->parent_client_remotik_id,
+                'for_child_client_remotik_id'=>$invoice->child_client_remotik_id
             ];
 
             return ResponseHelper::success($invoiceData, 'Invoice data retrieved.', 200);
@@ -324,7 +339,7 @@ class InvoiceChildClientController extends Controller
 
 
 
-  
+
 
 
 

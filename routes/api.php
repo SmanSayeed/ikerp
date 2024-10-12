@@ -15,6 +15,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Admin\DeviceController;
+use App\Http\Controllers\InvoiceChildClientController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\Sqlite\SqliteController;
 /*
@@ -171,7 +172,7 @@ Route::prefix('invoice')->group(function () {
 
 Route::prefix('client/invoice')->group(function () {
     /* clients invoice api */
-    Route::post('/generate', [InvoiceController::class, 'generateInvoice']);
+    Route::post('/generate', [InvoiceChildClientController::class, 'generateChildClientInvoice']);
 });
 
 

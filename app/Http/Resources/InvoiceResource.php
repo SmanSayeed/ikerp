@@ -34,6 +34,10 @@ class InvoiceResource extends JsonResource
             'updated_at' => $this->updated_at,
             'id' => $this->id,
             'due_date'=>$this->due_date,
+            'seller_id'=>$this->seller_id,
+            'invoice_generated_by_user_type'=>$this->invoice_generated_by_user_type,
+            'invoice_generated_by_id'=>$this->parent_client_remotik_id,
+            'for_child_client_remotik_id'=>$this->child_client_remotik_id
 
         ];
     }

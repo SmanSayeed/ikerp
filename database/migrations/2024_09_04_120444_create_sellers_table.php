@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('company_logo')->nullable(); // Nullable logo
             $table->string('company_vat_number')->unique(); // Unique VAT number
             $table->string('company_kvk_number')->unique(); // Unique KVK number
+            $table->string('company_iban_number')->unique()->nullable(); // Unique KVK number
             $table->boolean('status')->default(false);
             $table->foreignId('client_id')->unique()->constrained('clients')->onDelete('cascade'); // Foreign key to clients table
             $table->timestamps();

@@ -21,7 +21,11 @@ class Invoice extends Model
         'discount',
         'original_cost',
         'due_date',
-        'client_remotik_id'
+        'client_remotik_id',
+        'invoice_generated_by_user_type',
+        'invoice_generated_by_id',
+        'for_child_client_remotik_id',
+        'seller_id'
     ];
 
     /**
@@ -50,5 +54,10 @@ class Invoice extends Model
     public function getDeviceUsageDetailsAttribute($value)
     {
         return json_decode($value, true);
+    }
+
+    public function seller()
+    {
+        return $this->belongsTo(Seller::class);
     }
 }

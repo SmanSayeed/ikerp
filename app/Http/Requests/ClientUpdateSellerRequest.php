@@ -19,6 +19,7 @@ class ClientUpdateSellerRequest extends FormRequest
             'company_logo' => 'nullable|string',
             'company_vat_number' => 'sometimes|required|string|unique:sellers,company_vat_number,' . $this->route('clientId'),
             'company_kvk_number' => 'sometimes|required|string|unique:sellers,company_kvk_number,' . $this->route('clientId'),
+            'company_iban_number'=>'nullable|unique:sellers,company_iban_number',
         ];
     }
 }

@@ -23,6 +23,7 @@ class ClientBecomesSellerRequest extends FormRequest
             'company_address'=>'nullable',
             'company_vat_number'=>'required|unique:sellers,company_vat_number',
             'company_kvk_number'=>'required|unique:sellers,company_kvk_number',
+            'company_iban_number'=>'nullable|unique:sellers,company_iban_number',
             'client_id' => [
                 'required',
                 'exists:clients,id', // Ensure client_id exists in clients table

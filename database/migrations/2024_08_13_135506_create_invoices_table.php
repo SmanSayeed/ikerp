@@ -29,6 +29,16 @@ return new class extends Migration
             $table->text('device_usage_details')->nullable(); // array of objects json string
             $table->decimal('total_cost', 10, 2);
             $table->decimal('original_cost', 10, 2);
+            $table->text('notes')->nullable();
+
+            $table->string('invoice_generated_by_user_type')->enum('admin', 'client')->default('admin');
+
+            $table->string('invoice_generated_by_id'); // if admin get from admin table, if client get from client table
+
+            $table->string('for_child_client_remotik_id')->nullable();
+
+            $table->integer('seller_id')->nullable();
+
             $table->timestamps();
         });
     }
