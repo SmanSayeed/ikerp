@@ -28,6 +28,8 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->boolean('status')->default(true);
             $table->timestamp('last_synced')->nullable();
+            $table->boolean('is_parent')->default(true); // If true, the client is a parent, unless false, false does not mean client is a child
+            $table->boolean('is_child')->default(false); // true means client is a child, false means, client is not a child
             $table->foreignId('parent_client_id')->nullable()->constrained('clients')->onDelete('cascade');
             $table->softDeletes();
             $table->timestamps();

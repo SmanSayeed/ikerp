@@ -20,5 +20,8 @@ class ClientRegisterDto extends Data
         public bool $is_seller = false,
         public ?float $vip_discount = null,
         public ?int $parent_client_id = null,
+        public bool $is_parent = true,
+        public bool $is_child=false,
+        public bool $status=false
     ) {}
 }

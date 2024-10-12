@@ -34,6 +34,8 @@ class AdminManagesClientResource extends JsonResource
             'created_at' => $request->created_at,
             'updated_at' => $request->updated_at,
             'seller' => $this->when($request->is_seller, new SellerResource($request->seller)),
+            'is_child' => $request->is_child,
+            'is_parent' => $request->is_parent
         ];
     }
 }

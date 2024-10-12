@@ -4,6 +4,7 @@ use App\Helpers\ResponseHelper;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\AdminManagesClientController;
 use App\Http\Controllers\Admin\AdminManagesSellerProfileController;
+use App\Http\Controllers\ChildClientController;
 use App\Http\Controllers\Client\ClientAuthController;
 use App\Http\Controllers\Client\ClientController;
 use App\Http\Controllers\PowerDataController;
@@ -163,4 +164,16 @@ Route::prefix('invoice')->group(function () {
     Route::get('/view/{invoice_id}', [InvoiceController::class, 'viewInvoice']);
     Route::put('/update/{invoice_id}', [InvoiceController::class, 'updateInvoice']);
     Route::delete('/delete/{invoice_id}', [InvoiceController::class, 'deleteInvoice']);
+
+
 });
+
+
+Route::prefix('client/invoice')->group(function () {
+    /* clients invoice api */
+    Route::post('/generate', [InvoiceController::class, 'generateInvoice']);
+});
+
+
+
+Route::get('/client/child', [ChildClientController::class, 'getChildClients']);

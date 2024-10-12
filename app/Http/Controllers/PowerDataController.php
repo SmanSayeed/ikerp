@@ -1,42 +1,60 @@
 <?php
-// app/Http/Controllers/PowerDataController.php
 
 namespace App\Http\Controllers;
 
 use App\Models\Client;
 use App\Models\PowerData;
-use App\Models\SqliteModelPower;
-use App\Models\SqliteModelMain; // Import the model
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use App\Helpers\ResponseHelper; // Helper for handling responses
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Http; // Import the HTTP client
+use App\Services\NodeApiService; // Import the NodeApiService
 
 class PowerDataController extends Controller
 {
+    protected $nodeApiService;
 
+    public function __construct(NodeApiService $nodeApiService)
+    {
+        $this->nodeApiService = $nodeApiService; // Initialize the NodeApiService
+    }
 
     public function syncSqlite(Request $request)
     {
-        $client = Client::where('client_remotik_id', $request->input('client_remotik_id'))->first();
+        // Validate the request to ensure client_remotik_id is provided
+        $request->validate([
+            'client_remotik_id' => 'required|string'
+        ]);
+
+        $clientRemotikId = $request->input('client_remotik_id');
+
+        $client = Client::where('client_remotik_id', $clientRemotikId)->first();
         if (!$client) {
-            throw new \Exception('Client not found');
+            return ResponseHelper::error('Client not found', 404);
         }
 
         try {
             // Call the Node.js API to fetch power data
-            $response = Http::get(env('NODE_API_URL'), [
-                'username' => $client->client_remotik_id, // Assuming username is fetched from client
-            ]);
+            $response = $this->nodeApiService->getPowerData($client->client_remotik_id);
 
             // Check if the API call was successful
-            if ($response->successful()) {
-                $data = $response->json('data'); // Extract the 'data' array from the response
+            if ($response['success']) {
+                $data = $response['data']; // Extract the 'data' array from the response
                 $newRecords = 0; // Counter for new records
 
                 foreach ($data as $item) {
                     $remotik_power_id = $item['remotik_power_id'];
+                    $is_parent = $item['is_parent'];
+                    $is_child = $item['is_child'];
+                    $child_client_name = null;
+
+                    if (!$is_parent && !$is_child) {
+                        continue; // Skip if not a parent or child
+                    }
+
+                    if ($is_child) {
+                        $child_client_name = $item['child_client_name'];
+                    }
 
                     // Check if the remotik_power_id already exists
                     $existingEntry = PowerData::where('remotik_power_id', $remotik_power_id)->first();
@@ -64,7 +82,10 @@ class PowerDataController extends Controller
                             'node_name' => $item['node_name'], // Assuming node_name is present in the API response
                             'power' => $item['power'],
                             'client_id' => $client->id,
-                            'client_remotik_id'=>$client->client_remotik_id
+                            'client_remotik_id' => $client->client_remotik_id,
+                            'is_parent' => $is_parent,
+                            'is_child' => $is_child,
+                            'child_client_name' => $child_client_name
                         ];
 
                         // Insert the data into MySQL
@@ -74,9 +95,7 @@ class PowerDataController extends Controller
                 }
 
                 // Update client's last synced time
-                $client->update([
-                    'last_synced' => Carbon::now(),
-                ]);
+                $client->update(['last_synced' => Carbon::now()]);
 
                 // Return success response based on new records
                 if ($newRecords > 0) {
@@ -92,7 +111,7 @@ class PowerDataController extends Controller
                 }
             } else {
                 // Handle failed API response
-                throw new \Exception('Failed to retrieve power data from the Node.js API.');
+                throw new \Exception('Failed to retrieve power data from the Node.js API: ' . $response['message']);
             }
         } catch (\Exception $e) {
             // Handle any exceptions
@@ -103,5 +122,4 @@ class PowerDataController extends Controller
             );
         }
     }
-
 }

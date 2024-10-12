@@ -21,7 +21,7 @@ class InvoiceService
      * @param string|null $to
      * @return array
      */
-    public function getInvoiceData($from = null, $to = null, $client_remotik_id,$due_date=null):array|null
+    public function getInvoiceData($from = null, $to = null, $client_remotik_id,$due_date=null)
     {
         // Fetch client information
         $clientData = Client::where('client_remotik_id', $client_remotik_id)->first();
@@ -30,8 +30,6 @@ class InvoiceService
             // Return an empty response or handle it accordingly if client is not found
             return ['data' => [], 'totalInvoiceCost' => 0, 'originalInvoiceCost' => 0, 'client' => null];
         }
-
-     
 
         // Query to fetch PowerData for the specific client
         $query = PowerData::select(DB::raw('client_id,client_remotik_id, nodeid, node_name, COUNT(DISTINCT DATE(time)) as days_active'))
@@ -87,6 +85,94 @@ class InvoiceService
             'from' => $from,
             'to' => $to,
             'client' => $clientData,
+            'due_date'=>$due_date
+        ];
+    }
+
+    public function getChildClientInvoiceData($from = null, $to = null, $client_remotik_id,$due_date=null,$child_client_name=null):array|null
+    {
+        // Fetch client information
+        $clientData = Client::where('client_remotik_id', $client_remotik_id)->first();
+
+        $childClientData = Client::where('client_remotik_id', $child_client_name)->first();
+
+        if (!$clientData) {
+            // Return an empty response or handle it accordingly if client is not found
+            return ['data' => [], 'totalInvoiceCost' => 0, 'originalInvoiceCost' => 0, 'client' => null];
+        }
+
+        if($child_client_name && !$childClientData){
+            return ['data' => [], 'totalInvoiceCost' => 0, 'originalInvoiceCost' => 0, 'client' => null];
+        }
+
+        // Query to fetch PowerData for the specific client
+        $query = PowerData::select(DB::raw('client_id,client_remotik_id, nodeid, node_name, COUNT(DISTINCT DATE(time)) as days_active'))
+            ->where('nodeid', '!=', '*')
+            ->where('power', '=', 1)
+            ->where('client_remotik_id', $clientData->client_remotik_id)
+            ->groupBy('client_id', 'client_remotik_id','nodeid', 'node_name');
+
+            if($child_client_name){
+                $query = PowerData::select(DB::raw('client_id,client_remotik_id, nodeid, node_name,child_client_name, COUNT(DISTINCT DATE(time)) as days_active'))
+                ->where('nodeid', '!=', '*')
+                ->where('power', '=', 1)
+                ->where('client_remotik_id', $clientData->client_remotik_id)
+                ->where('child_client_name', $child_client_name)
+                ->groupBy('client_id', 'client_remotik_id','nodeid', 'node_name','child_client_name');
+            }
+
+        // Apply date filters
+        if ($from && $to) {
+            $query->whereDate('time', '>=', $from)
+                  ->whereDate('time', '<=', $to);
+        } elseif ($from) {
+            $query->whereDate('time', '=', $from);
+        }
+
+        // Fetch the data and map it to the desired structure
+        $data = $query->get()->map(function ($item) use ($clientData) {
+            // Calculate totals
+            $originalTotal = $item->days_active * $this->pricePerNode;
+
+            return [
+                'node_name' => $item->node_name,
+                'days_active' => $item->days_active,
+                'price_per_day' => $this->pricePerNode,
+                'original_total' => $originalTotal,
+            ];
+        });
+
+        $discountPercentage = (float) $clientData->vip_discount;
+
+        // Calculate total costs
+        $originalInvoiceCost = $data->sum('original_total');
+        $discount = 0;
+        $totalInvoiceCost = $originalInvoiceCost;
+
+        if($discountPercentage) {
+
+            $totalInvoiceCost = $originalInvoiceCost - $originalInvoiceCost * ($discountPercentage / 100);
+
+            $discount = $originalInvoiceCost - $totalInvoiceCost;
+        }
+
+        $sendClientInfo = $clientData;
+        if($child_client_name){
+            $sendClientInfo = $childClientData;
+        }
+
+
+
+        // Return structured data
+        return [
+            'data' => $data,
+            'originalInvoiceCost' => $originalInvoiceCost,
+            'discount'=>$discount,
+            'totalInvoiceCost' => $totalInvoiceCost,
+            'discountPercentage' => $discountPercentage,
+            'from' => $from,
+            'to' => $to,
+            'client' => $sendClientInfo,
             'due_date'=>$due_date
         ];
     }

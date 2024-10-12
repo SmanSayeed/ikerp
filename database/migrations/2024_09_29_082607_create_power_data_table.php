@@ -15,6 +15,10 @@ return new class extends Migration
             $table->id();
             $table->integer('remotik_power_id')->unique();
             $table->foreignId('client_id')->constrained('clients')->onDelete('cascade');
+            $table->boolean('is_parent')->default(true);
+
+            $table->boolean('is_child')->default(false);
+            $table->string('child_client_name')->nullable();
             $table->string('client_remotik_id');
             $table->timestamp('time')->nullable(); // This will hold the timestamp as datetime
             $table->string('nodeid');

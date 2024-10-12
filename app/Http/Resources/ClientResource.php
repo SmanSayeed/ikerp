@@ -31,6 +31,8 @@ class ClientResource extends JsonResource
             'updated_at' => $this->updated_at,
             'is_seller' => $this->is_seller,
             'seller' => $this->when($this->is_seller, new SellerResource($this->seller)),
+            'is_child'=>$this->is_child,
+            'is_parent'=>$this->is_parent
         ];
     }
 }
