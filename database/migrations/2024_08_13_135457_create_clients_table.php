@@ -21,7 +21,7 @@ return new class extends Migration
             $table->string('client_remotik_id')->nullable();
             $table->boolean('is_seller')->default(false);
             $table->date('payment_due_date')->nullable();
-            $table->decimal('vat_slab', 5, 2)->nullable();
+            $table->string('vat_slab')->nullable();
             $table->text('gbs_information')->nullable();
             $table->boolean('is_vip')->default(false);
             $table->decimal('vip_discount', 8, 2)->nullable();
