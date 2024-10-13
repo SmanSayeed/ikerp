@@ -14,7 +14,8 @@ class Seller extends Model
         'company_kvk_number',
         'company_iban_number',
         'client_id',
-        'status'
+        'status',
+        'client_remotik_id'
     ];
 
     public function client()
