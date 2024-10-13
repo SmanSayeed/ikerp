@@ -290,14 +290,14 @@ class InvoiceChildClientController extends Controller
         }
     }
 
-    public function getChildClientInvoices($client_remotik_id,Request $request)
+    public function getChildClientInvoices(Request $request,$client_remotik_id)
     {
 
 
         try {
             // Start building the query
             $query = Invoice::query();
-            $query->where('client_remotik_id', $client_remotik_id)->where('invoice_generated_by_user_type','client')->where('invoice_generated_by_id',$client_remotik_id);
+            $query->where('invoice_generated_by_user_type','client')->where('invoice_generated_by_id',$client_remotik_id);
 
             $perPage = 100;
             if ($request->filled('perPage')) {

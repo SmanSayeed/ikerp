@@ -74,7 +74,6 @@ class InvoiceChildClientService
         }
 
 
-
         // Return structured data
         return [
             'data' => $data,

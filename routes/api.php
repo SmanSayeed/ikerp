@@ -176,7 +176,7 @@ Route::prefix('invoice')->group(function () {
 Route::prefix('client/invoice')->group(function () {
     /* clients invoice api */
     Route::post('/generate', [InvoiceChildClientController::class, 'generateChildClientInvoice']);
-    
+
      /* for child clients */
      Route::get('/child-client-invoice-list/{client_remotik_id}', [InvoiceChildClientController::class, 'getChildClientInvoices']);
 });
