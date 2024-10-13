@@ -19,6 +19,7 @@ class ClientBecomesSellerRequest extends FormRequest
 
         $clientId = Auth::id();
         return [
+            'client_remotik_id'=>'required',
             'company_name'=>'required',
             'company_address'=>'nullable',
             'company_vat_number'=>'required|unique:sellers,company_vat_number',
