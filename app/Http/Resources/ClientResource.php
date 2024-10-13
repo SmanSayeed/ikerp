@@ -17,6 +17,7 @@ class ClientResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'client_remotik_id'=>$this->client_remotik_id,
             'name' => $this->name,
             'email' => $this->email,
             'address' => $this->address,

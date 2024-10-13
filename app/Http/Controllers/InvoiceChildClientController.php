@@ -43,12 +43,19 @@ class InvoiceChildClientController extends Controller
         $parent_client_remotik_id = $request->input('parent_client_remotik_id');
 
         $due_date = $request->input('due_date');
+
         $child_client_remotik_id = $request->input('child_client_remotik_id');
 
-        $powerClient = PowerData::where('client_remotik_id', $child_client_remotik_id)->first();
+        $powerClient = PowerData::where('client_remotik_id', $parent_client_remotik_id)->first();
 
         if(!$powerClient) {
-            return ResponseHelper::error('Client not found', 400);
+            return ResponseHelper::error('Parent Client not found', 400);
+        }
+
+        $powerChildClient = PowerData::where('child_client_remotik_id', $child_client_remotik_id)->first();
+
+        if(!$powerChildClient) {
+            return ResponseHelper::error('Child Client not found', 400);
         }
 
         try {
@@ -72,7 +79,8 @@ class InvoiceChildClientController extends Controller
                 return ResponseHelper::error('No usage data found for this client in the given date range.', 400);
             }
 
-            $seller = Seller::where('client_id',$parent_client_remotik_id)->firstOrFail();
+            $seller = Seller::where('client_remotik_id',$parent_client_remotik_id)->firstOrFail();
+
 
             // Create a new invoice
             $invoice = Invoice::create([
@@ -282,11 +290,14 @@ class InvoiceChildClientController extends Controller
         }
     }
 
-    public function getInvoices(Request $request)
+    public function getChildClientInvoices($client_remotik_id,Request $request)
     {
+
+
         try {
             // Start building the query
             $query = Invoice::query();
+            $query->where('client_remotik_id', $client_remotik_id)->where('invoice_generated_by_user_type','client')->where('invoice_generated_by_id',$client_remotik_id);
 
             $perPage = 100;
             if ($request->filled('perPage')) {

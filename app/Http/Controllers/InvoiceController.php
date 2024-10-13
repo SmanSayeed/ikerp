@@ -42,6 +42,8 @@ class InvoiceController extends Controller
         $due_date = $request->input('due_date');
 
         $powerClient = PowerData::where('client_remotik_id', $client_remotik_id)->first();
+
+
         if(!$powerClient) {
             return null;
         }
@@ -83,7 +85,9 @@ class InvoiceController extends Controller
                 'original_cost' => $invoiceData['originalInvoiceCost'],
                 'total_cost' => $invoiceData['totalInvoiceCost'],
                 'discount' => $invoiceData['discount'],
-                'due_date' => $invoiceData['due_date']
+                'due_date' => $invoiceData['due_date'],
+                'invoice_generated_by_id'=>1,
+                'invoice_generated_by_user_type'=> 'admin',
             ]);
             // Return the response using ResponseHelper
             return ResponseHelper::success(new InvoiceResource($invoice), 'Invoice generated and saved successfully');

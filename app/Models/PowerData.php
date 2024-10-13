@@ -11,4 +11,9 @@ class PowerData extends Model
     use HasFactory;
 
     protected $fillable = ['remotik_power_id','time', 'nodeid', 'power','client_id','node_name','client_remotik_id','is_parent','is_child','child_client_remotik_id'];
+
+    protected $casts = [
+        'is_child' => 'boolean',
+        'is_parent' => 'boolean'
+    ];
 }

@@ -29,7 +29,7 @@ class RegisterClientRequest extends FormRequest
             'is_vip' => 'boolean',
             'is_seller' => 'boolean',
             'vip_discount' => 'nullable|numeric|min:0',
-            'parent_client_id' => 'nullable|exists:clients,id',
+            'parent_client_id' => 'nullable',
             'status' => 'nullable|boolean',
             'is_child' => 'boolean',
             'is_parent'=>'boolean',

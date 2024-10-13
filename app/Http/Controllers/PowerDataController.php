@@ -21,6 +21,7 @@ class PowerDataController extends Controller
 
     public function syncSqlite(Request $request)
     {
+
         // Validate the request to ensure client_remotik_id is provided
         $request->validate([
             'client_remotik_id' => 'required|string'
@@ -44,22 +45,24 @@ class PowerDataController extends Controller
 
                 foreach ($data as $item) {
                     $remotik_power_id = $item['remotik_power_id'];
-                    $is_child = $item['is_child'];
+                    $is_child = false;
                     $child_client_remotik_id = null;
 
-                    if ($is_child) {
+                    if($item['is_child']) {
+                        $is_child = $item['is_child'];
                         $child_client_remotik_id = $item['child_client_remotik_id'];
                     }
 
+
                     // Check if the remotik_power_id already exists
-                    $existingEntry = PowerData::where('remotik_power_id', $remotik_power_id)->first();
+                    $existingEntry = PowerData::where('remotik_power_id', $remotik_power_id)->where('client_remotik_id', $client->client_remotik_id)->first();
 
                     if ($existingEntry) {
                         continue; // Skip if the ID already exists
                     }
 
                     // Ensure the necessary fields exist
-                    if (isset($item['time']) && isset($item['nodeid']) && isset($item['power'])) {
+
                         // Parse the datetime
                         $dateTime = Carbon::parse($item['time'])->toDateTimeString();
 
@@ -79,14 +82,14 @@ class PowerDataController extends Controller
                             'client_id' => $client->id,
                             'client_remotik_id' => $client->client_remotik_id,
                             'is_parent' =>$is_child ? 0 : 1,
-                            'is_child' => $is_child,
+                            'is_child' => $is_child ? 1 : 0,
                             'child_client_remotik_id' => $child_client_remotik_id
                         ];
 
                         // Insert the data into MySQL
                         PowerData::create($createData);
                         $newRecords++;
-                    }
+
                 }
 
                 // Update client's last synced time

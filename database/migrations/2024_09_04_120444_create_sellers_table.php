@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('company_kvk_number')->unique(); // Unique KVK number
             $table->string('company_iban_number')->unique()->nullable(); // Unique KVK number
             $table->boolean('status')->default(false);
+            $table->string('client_remotik_id');
             $table->foreignId('client_id')->unique()->constrained('clients')->onDelete('cascade'); // Foreign key to clients table
             $table->timestamps();
         });

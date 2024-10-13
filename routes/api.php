@@ -167,14 +167,22 @@ Route::prefix('invoice')->group(function () {
     Route::delete('/delete/{invoice_id}', [InvoiceController::class, 'deleteInvoice']);
 
 
+
+
+
 });
 
 
 Route::prefix('client/invoice')->group(function () {
     /* clients invoice api */
     Route::post('/generate', [InvoiceChildClientController::class, 'generateChildClientInvoice']);
+    
+     /* for child clients */
+     Route::get('/child-client-invoice-list/{client_remotik_id}', [InvoiceChildClientController::class, 'getChildClientInvoices']);
 });
 
 
 
 Route::get('/client/child', [ChildClientController::class, 'getChildClients']);
+
+Route::get('client/child/profile/{client_remotik_id}/{child_client_remotik_id}', [ChildClientController::class, 'getChildClientProfile']);

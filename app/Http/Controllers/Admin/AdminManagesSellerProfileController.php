@@ -4,13 +4,13 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\AdminUpdateSellerRequest;
-use App\Http\Resources\AdminManagesClientResource;
 use App\Models\Seller;
 use App\Models\Client;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use App\Helpers\ResponseHelper; // Ensure you have a ResponseHelper class or adjust accordingly
+use App\Http\Resources\SellerResource;
 
 class AdminManagesSellerProfileController extends Controller
 {
@@ -24,7 +24,9 @@ class AdminManagesSellerProfileController extends Controller
     {
         try {
             $client = Client::with('seller')->findOrFail($clientId);
-            return ResponseHelper::success(new AdminManagesClientResource($client));
+
+
+            return ResponseHelper::success(new SellerResource($client->seller));
         } catch (\Exception $e) {
             return ResponseHelper::error($e->getMessage(), Response::HTTP_NOT_FOUND);
         }
@@ -42,7 +44,6 @@ class AdminManagesSellerProfileController extends Controller
         try {
             $clientId = (int) $clientId;
             $client = Client::with('seller')->findOrFail($clientId);
-
             // If the client does not have a seller profile, create one
             $seller = $client->seller ?? new Seller();
             $seller->fill($request->validated());
@@ -50,7 +51,7 @@ class AdminManagesSellerProfileController extends Controller
             $seller->save();
 
             // Return success response
-            return ResponseHelper::success(new AdminManagesClientResource($client), 'Seller profile updated successfully!');
+            return ResponseHelper::success(new SellerResource($client->seller), 'Seller profile updated successfully!');
         } catch (\Exception $e) {
             // Return error response
             return ResponseHelper::error($e->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);

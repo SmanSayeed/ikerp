@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\ClientResource;
 use Illuminate\Http\Request;
 use App\Helpers\ResponseHelper;
+use App\Models\Client;
 use App\Services\NodeApiService;
 
 class ChildClientController extends Controller
@@ -33,5 +35,23 @@ class ChildClientController extends Controller
         }
 
         return ResponseHelper::error($response['message'], 500);
+    }
+
+
+
+
+    public function getChildClientProfile($client_remotik_id,$child_client_remotik_id)
+    {
+        try {
+            $client = Client::where('client_remotik_id', $child_client_remotik_id)->where('parent_client_id',$client_remotik_id)->first();
+
+            if (!$client) {
+                return ResponseHelper::error('Client not found.', 404);
+            }
+
+            return ResponseHelper::success(new ClientResource($client), 'Client retrieved successfully.');
+        } catch (\Exception $e) {
+            return ResponseHelper::error($e->getMessage(), 500);
+        }
     }
 }

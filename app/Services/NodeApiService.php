@@ -46,7 +46,7 @@ class NodeApiService
     {
         try {
             // Call the Node.js API to fetch power data
-            $response = Http::get("{$this->baseUrl}power/client", [
+            $response = Http::get("{$this->baseUrl}power/client-child", [
                 'username' => $username,
             ]);
 
