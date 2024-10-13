@@ -183,6 +183,9 @@ Route::prefix('client/invoice')->group(function () {
 
 
 
+
+Route::get('/clients/nodejs', [ClientController::class, 'getClientsFromNodeJS']);
+
 Route::get('/client/child', [ChildClientController::class, 'getChildClients']);
 
 Route::get('client/child/profile/{client_remotik_id}/{child_client_remotik_id}', [ChildClientController::class, 'getChildClientProfile']);

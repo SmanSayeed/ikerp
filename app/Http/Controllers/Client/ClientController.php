@@ -10,6 +10,7 @@ use App\Http\Requests\UpdateClientRequest;
 use App\Http\Requests\UpdateProfileRequest;
 use App\Http\Resources\ClientResource;
 use App\Services\ClientService;
+use App\Services\NodeApiService;
 use Illuminate\Http\JsonResponse;
 use Exception;
 use App\Models\Client;
@@ -59,5 +60,21 @@ class ClientController extends Controller
         } catch (Exception $e) {
             return ResponseHelper::error('Failed to update profile: ' . $e->getMessage(), 500);
         }
+    }
+
+    public function getClientsFromNodeJS()
+    {
+        // Validate the request to ensure client_remotik_id is provided
+
+        // Use the NodeApiService to get child clients
+        $nodeApiService = new NodeApiService();
+        $response =$nodeApiService->getClients();
+
+        // Check if the response is successful
+        if ($response['success']) {
+            return ResponseHelper::success($response['data'], 'Child clients retrieved successfully');
+        }
+
+        return ResponseHelper::error($response['message'], 500);
     }
 }

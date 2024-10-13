@@ -13,6 +13,35 @@ class NodeApiService
         $this->baseUrl = env('NODE_API_URL');
     }
 
+
+    public function getClients()
+    {
+        try {
+            // Call the Node.js API to fetch child clients
+            $response = Http::get("{$this->baseUrl}client/clients");
+
+
+            // Check if the response is successful
+            if ($response->successful()) {
+                return $response->json(); // Return the JSON response
+            }
+
+            // Handle non-successful responses (optional)
+            return [
+                'success' => false,
+                'message' => 'Failed to fetch child clients',
+                'data' => null
+            ];
+        } catch (\Exception $e) {
+            // Handle exceptions and return a consistent error response
+            return [
+                'success' => false,
+                'message' => 'Error fetching data: ' . $e->getMessage(),
+                'data' => null
+            ];
+        }
+    }
+
     public function getChildClients(string $username)
     {
         try {
