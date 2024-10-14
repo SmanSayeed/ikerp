@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\AdminManagesSellerProfileController;
 use App\Http\Controllers\ChildClientController;
 use App\Http\Controllers\Client\ClientAuthController;
 use App\Http\Controllers\Client\ClientController;
+use App\Http\Controllers\NodesController;
 use App\Http\Controllers\PowerDataController;
 use App\Http\Controllers\RefreshTokenController;
 use App\Http\Controllers\Admin\AdminManagesUserController;
@@ -186,6 +187,13 @@ Route::prefix('client/invoice')->group(function () {
 
 Route::get('/clients/nodejs', [ClientController::class, 'getClientsFromNodeJS']);
 
+
 Route::get('/client/child', [ChildClientController::class, 'getChildClients']);
 
 Route::get('client/child/profile/{client_remotik_id}/{child_client_remotik_id}', [ChildClientController::class, 'getChildClientProfile']);
+
+
+// sync nodes
+Route::post('/sync-nodes', [NodesController::class, 'syncNodes']);
+
+Route::get('/nodes', [NodesController::class, 'getNodes']);

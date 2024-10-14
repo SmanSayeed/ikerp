@@ -100,6 +100,15 @@ class NodeApiService
         }
     }
 
+    public function getMeshData($client_name)
+    {
+        $response = Http::get("{$this->baseUrl}data/mesh", [
+            'client_name' => $client_name,
+        ]);
+
+        return $response->json();
+    }
+
 
 }
 
