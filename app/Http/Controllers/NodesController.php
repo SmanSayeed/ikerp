@@ -70,30 +70,25 @@ class NodesController extends Controller
             // Initialize the query
             $query = Node::query();
 
-            // Apply filters based on request parameters
-            if ($request->has('meshid')) {
-                $query->where('meshid', $request->input('meshid'));
+            // Apply filters only if request parameters are present
+            if ($request->filled('mesh_name')) {
+                $query->where('mesh_name', $request->input('mesh_name'));
             }
 
-            if ($request->has('nodeid')) {
-                $query->where('nodeid', $request->input('nodeid'));
+            if ($request->filled('node_name')) {
+                $query->where('node_name', $request->input('node_name'));
             }
 
-            if ($request->has('client_remotik_id')) {
+            if ($request->filled('client_remotik_id')) {
                 $query->where('client_remotik_id', $request->input('client_remotik_id'));
             }
 
-            if ($request->has('child_client_remotik_id')) {
+            if ($request->filled('child_client_remotik_id')) {
                 $query->where('child_client_remotik_id', $request->input('child_client_remotik_id'));
             }
 
             // Execute the query and fetch the filtered data
             $nodes = $query->get();
-
-            // Check if any data was found
-            if ($nodes->isEmpty()) {
-                return ResponseHelper::error('No nodes found', 404);
-            }
 
             // Return success response with filtered nodes
             return ResponseHelper::success($nodes, 'Nodes retrieved successfully');
