@@ -12,7 +12,7 @@ class UserSeeder extends Seeder
     public function createClient($name):void{
         Client::create([
             'name' => $name,
-            'email' => $name.'@example.com',
+            'email' => $name.'@'.$name.'.com',
             'password' => Hash::make('password'),
             'status' => true,
             'email_verified_at' => now(),
