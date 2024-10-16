@@ -32,11 +32,11 @@ class InvoiceService
         }
 
         // Query to fetch PowerData for the specific client
-        $query = PowerData::select(DB::raw('client_id,client_remotik_id, nodeid, node_name, COUNT(DISTINCT DATE(time)) as days_active'))
+        $query = PowerData::select(DB::raw('client_remotik_id, nodeid, node_name, COUNT(DISTINCT DATE(time)) as days_active'))
             ->where('nodeid', '!=', '*')
             ->where('power', '=', 1)
             ->where('client_remotik_id', $clientData->client_remotik_id)
-            ->groupBy('client_id', 'client_remotik_id','nodeid', 'node_name');
+            ->groupBy( 'client_remotik_id','nodeid', 'node_name');
 
         // Apply date filters
         if ($from && $to) {
@@ -89,7 +89,7 @@ class InvoiceService
         ];
     }
 
-   
+
 
     public function getPdfInvoiceData($invoice_id)
     {
