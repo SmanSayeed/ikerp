@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('power_data', function (Blueprint $table) {
             $table->id();
             $table->integer('remotik_power_id');
-            $table->foreignId('client_id')->constrained('clients')->onDelete('cascade');
             $table->boolean('is_parent')->default(true);
 
             $table->boolean('is_child')->default(false);

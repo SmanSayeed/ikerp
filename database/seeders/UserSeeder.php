@@ -31,14 +31,24 @@ class UserSeeder extends Seeder
             'email_verified_at' => now(), // Ensures email is verified
         ]);
 
+
         User::create([
-            'name' => 'Service Provider',
-            'email' => 'serviceprovider@example.com',
+            'name' => 'DVRS',
+            'email' => 'dvrs@remotik.nl',
             'password' => Hash::make('password'),
-            'role' => 'service_provider',
+            'role' => 'admin',
             'status' => true,
             'email_verified_at' => now(), // Ensures email is verified
         ]);
+
+        // User::create([
+        //     'name' => 'Service Provider',
+        //     'email' => 'serviceprovider@example.com',
+        //     'password' => Hash::make('password'),
+        //     'role' => 'service_provider',
+        //     'status' => true,
+        //     'email_verified_at' => now(), // Ensures email is verified
+        // ]);
 
        $this->createClient('demo');
        $this->createClient('ktts');

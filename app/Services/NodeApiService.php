@@ -110,6 +110,39 @@ class NodeApiService
     }
 
 
+    public function getPowerDataForNode($nodeid, $clientRemotikId)
+    {
+        try {
+            // Call the Node.js API to fetch power data for a specific node
+            $response = Http::get("{$this->baseUrl}power/data", [
+                'nodeid' => $nodeid,                    // Pass the node ID
+                'client_remotik_id' => $clientRemotikId  // Pass the client_remotik_id
+            ]);
+
+            // Check if the response is successful
+            if ($response->successful()) {
+                return $response->json(); // Return the JSON response
+            }
+
+            // Handle non-successful responses (optional)
+            return [
+                'success' => false,
+                'message' => 'Failed to fetch power data',
+                'data' => null
+            ];
+        } catch (\Exception $e) {
+            // Handle exceptions and return a consistent error response
+            return [
+                'success' => false,
+                'message' => 'Error fetching data: ' . $e->getMessage(),
+                'data' => null
+            ];
+        }
+    }
+
+
+
+
 }
 
 

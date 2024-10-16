@@ -69,7 +69,7 @@ class PowerDataController extends Controller
                         // Prepare the data for insertion
                         $nodeid = $item['nodeid'];
                         if ($nodeid == "*") {
-                            continue; // Skip if nodeid is '*'
+                            continue;
                         }
 
                         // Prepare the data for insertion
@@ -79,7 +79,7 @@ class PowerDataController extends Controller
                             'nodeid' => $nodeid,
                             'node_name' => $item['node_name'], // Assuming node_name is present in the API response
                             'power' => $item['power'],
-                            'client_id' => $client->id,
+
                             'client_remotik_id' => $client->client_remotik_id,
                             'is_parent' =>$is_child ? 0 : 1,
                             'is_child' => $is_child ? 1 : 0,

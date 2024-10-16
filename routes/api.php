@@ -126,6 +126,7 @@ Route::prefix('admin')->group(function () {
 
 Route::prefix('client')->group(function () {
     Route::post('register', [ClientAuthController::class, 'register']);
+
     Route::post('login', [ClientAuthController::class, 'login']);
 
     Route::middleware('auth:sanctum')->group(function () {
@@ -133,6 +134,8 @@ Route::prefix('client')->group(function () {
         Route::put('profile', [ClientController::class, 'updateClientProfile']);
         Route::put('reset-password', [ClientAuthController::class, 'resetPassword']);
         Route::post('logout', [ClientAuthController::class, 'logout']);
+
+        Route::put('update-child-client/{client_remotik_id}/{child_client_remotik_id}', [ChildClientController::class, 'updateChildClientProfile']);
 
         Route::post('become-seller/{clientId}', [SellerController::class, 'becomeSeller']);
         Route::get('seller/{clientId}', [SellerController::class, 'getSellerInfo']);

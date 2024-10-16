@@ -14,11 +14,11 @@ return new class extends Migration
         Schema::create('clients', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('email')->unique();
+            $table->string('email')->nullable()->unique();
             $table->string('address')->nullable();
             $table->string('phone')->nullable();
             $table->string('password');
-            $table->string('client_remotik_id')->nullable();
+            $table->string('client_remotik_id')->nullable()->unique();
             $table->boolean('is_seller')->default(false);
             $table->date('payment_due_date')->nullable();
             $table->string('vat_slab')->nullable();
