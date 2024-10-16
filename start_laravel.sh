@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # Define variables
-LARAVEL_DIR="/path/to/your/laravel/project"
-HOST="0.0.0.0"
-PORT="8000"
+# LARAVEL_DIR="/path/to/your/laravel/project"
+# HOST="0.0.0.0"
+# PORT="8000"
 QUEUE_TIMEOUT=120
 
 # Start the Laravel application
