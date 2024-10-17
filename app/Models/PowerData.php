@@ -14,6 +14,7 @@ class PowerData extends Model
 
     protected $casts = [
         'is_child' => 'boolean',
-        'is_parent' => 'boolean'
+        'is_parent' => 'boolean',
+        'time' => 'datetime', // Cast 'time' as datetime to handle it properly
     ];
 }

@@ -44,7 +44,10 @@ class SyncSqliteData implements ShouldQueue
                     $insertData = [];
                     foreach ($powerData as $data) {
                         // Parse the datetime from API response and convert to MySQL format
-                        $dateTime = Carbon::parse($data['time'])->toDateTimeString(); // Convert to MySQL-compatible format
+
+                    $dateTime = Carbon::createFromTimestampMs($data['time'])->toDateTimeString(); // Correct conversion
+
+                        // Convert to MySQL-compatible format
 
                         $insertData[] = [
                             'remotik_power_id' => $data['id'],
