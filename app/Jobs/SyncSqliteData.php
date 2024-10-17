@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Jobs;
 
 use Illuminate\Bus\Queueable;
@@ -9,6 +8,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use App\Models\PowerData;
 use App\Models\Node;
+use App\Models\PowerDataSyncLog;
 use App\Services\NodeApiService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
@@ -36,6 +36,10 @@ class SyncSqliteData implements ShouldQueue
      */
     public function handle()
     {
+        $totalInserted = 0; // Count of new records inserted
+        $status = 'no_new_data'; // Default status
+        $logMessage = 'Sync complete: No new data was inserted.'; // Default message
+
         foreach ($this->nodesToSync as $nodeid) {
             // Retrieve node information from the database
             $node = Node::where('nodeid', $nodeid)->first();
@@ -58,42 +62,87 @@ class SyncSqliteData implements ShouldQueue
                                 // Parse the time (from milliseconds) and convert to MySQL compatible format
                                 $dateTime = Carbon::createFromTimestampMs($data['time'])->toDateTimeString();
 
+                                // Generate unique_id by concatenating time, nodeid, and remotik_power_id
+                                $uniqueId = $data['time'] . '_' . $data['nodeid'] . '_' . $data['id'];
+
+                                // Check if this unique_id already exists
+                                if (PowerData::where('unique_id', $uniqueId)->exists()) {
+                                    continue; // Skip if the unique_id already exists
+                                }
+
                                 // Prepare data for batch insert
                                 $insertData[] = [
+                                    'unique_id' => $uniqueId,
                                     'remotik_power_id' => $data['id'],
-                                    'time' => $dateTime, // Use formatted datetime
+                                    'time' => $dateTime,
                                     'nodeid' => $data['nodeid'],
                                     'power' => $data['power'],
                                     'client_remotik_id' => $this->clientRemotikId,
-                                    'child_client_remotik_id' => $node->child_client_remotik_id, // Set from node
-                                    'is_parent' => $node->is_child_node ? false : true,
-                                    'is_child' => $node->is_child_node ? true : false,
-                                    'node_name' => $node->node_name, // Set node_name from node data
+                                    'child_client_remotik_id' => $node->child_client_remotik_id,
+                                    'is_parent' => !$node->is_child_node,
+                                    'is_child' => $node->is_child_node,
+                                    'node_name' => $node->node_name,
                                     'created_at' => now(),
                                     'updated_at' => now(),
                                 ];
                             } catch (\Exception $e) {
-                                // Log any error during processing
-                                Log::error('Error processing nodeid: ' . $data['nodeid'] . ' - ' . $e->getMessage());
+                                // Log error during processing
+                                $errorMessage = 'Error processing nodeid: ' . $data['nodeid'] . ' - ' . $e->getMessage();
+                                Log::error($errorMessage);
+                                $this->powerDataSyncLog('error', $errorMessage);
                             }
                         }
 
                         try {
                             // Insert the batch data into the MySQL database
-                            PowerData::insert($insertData);
+                            if (!empty($insertData)) {
+                                PowerData::insert($insertData);
+                                $totalInserted += count($insertData);
+                            }
                         } catch (\Exception $e) {
                             // Log errors during insertion
-                            Log::error('Error inserting batch data for nodeid: ' . $nodeid . ' - ' . $e->getMessage());
+                            $errorMessage = 'Error inserting batch data for nodeid: ' . $nodeid . ' - ' . $e->getMessage();
+                            Log::error($errorMessage);
+                            $this->powerDataSyncLog('error', $errorMessage);
                         }
+                    }
+
+                    // Update the log message after successful processing
+                    if ($totalInserted > 0) {
+                        $status = 'new_data';
+                        $logMessage = "$totalInserted new records inserted.";
                     }
                 } else {
                     // Log error if API response is not successful
-                    Log::error('Failed to retrieve power data for node ' . $nodeid . ': ' . $response['message']);
+                    $errorMessage = 'Failed to retrieve power data for node ' . $nodeid . ': ' . $response['message'];
+                    Log::error($errorMessage);
+                    $this->powerDataSyncLog('error', $errorMessage);
                 }
             } else {
                 // Log error if the node is not found in the database
-                Log::error('Node not found for nodeid: ' . $nodeid);
+                $errorMessage = 'Node not found for nodeid: ' . $nodeid;
+                Log::error($errorMessage);
+                $this->powerDataSyncLog('error', $errorMessage);
             }
+        }
+
+        // Log the sync summary
+        $this->powerDataSyncLog($status, $logMessage, $totalInserted);
+    }
+
+    public function powerDataSyncLog($status, $message, $totalInserted = 0)
+    {
+        // Log the sync result for this node
+        try {
+            PowerDataSyncLog::create([
+                'client_remotik_id' => $this->clientRemotikId,
+                'synced_count' => $totalInserted,
+                'status' => $status,
+                'message' => $message,
+            ]);
+        } catch (\Exception $e) {
+            // Log any errors during the creation of the sync log
+            Log::error('Error creating PowerDataSyncLog: ' . $e->getMessage());
         }
     }
 }

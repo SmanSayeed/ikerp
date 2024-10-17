@@ -17,6 +17,7 @@ class UserSeeder extends Seeder
             'status' => true,
             'email_verified_at' => now(),
             'client_remotik_id'=> $name,
+            'parent_client_id'=>'DVRS',
         ]);
     }
     public function run()

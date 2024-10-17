@@ -13,8 +13,13 @@ return new class extends Migration
     {
         Schema::create('power_data', function (Blueprint $table) {
             $table->id();
+
+            $table->string('unique_id')->unique();
+
             $table->integer('remotik_power_id');
             $table->boolean('is_parent')->default(true);
+
+
 
             $table->boolean('is_child')->default(false);
 

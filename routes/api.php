@@ -118,6 +118,8 @@ Route::prefix('admin')->group(function () {
         Route::get('devices/{id}', [DeviceController::class, 'show']); // Show a specific device
         Route::put('devices/{id}', [DeviceController::class, 'update']); // Update a specific device
         Route::delete('devices/{id}', [DeviceController::class, 'destroy']); // Delete a specific device
+
+        Route::get('power-data', [PowerDataController::class, 'getPowerData']); // List all users
     });
 });
 

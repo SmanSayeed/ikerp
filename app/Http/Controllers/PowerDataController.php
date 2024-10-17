@@ -120,4 +120,61 @@ class PowerDataController extends Controller
             );
         }
     }
+
+    public function getPowerData(Request $request)
+    {
+        // Validate request parameters
+        $request->validate([
+            'client_remotik_id' => 'nullable|string',
+            'child_client_remotik_id' => 'nullable|string',
+            'orderBy' => 'nullable|string|in:asc,desc',  // order by 'time' column
+            'perPage' => 'nullable|integer|in:50,100,200,500', // Pagination limit
+            'page' => 'nullable|integer' // Page number for jumping to a specific page
+        ]);
+
+        // Fetch query parameters
+        $clientRemotikId = $request->input('client_remotik_id');
+        $childClientRemotikId = $request->input('child_client_remotik_id');
+        $orderBy = $request->input('orderBy', 'asc'); // Default orderBy is ascending
+        $perPage = $request->input('perPage', 50); // Default to 50 items per page
+        $page = $request->input('page', 1); // Default to page 1
+
+        // Query the power data based on the provided filters
+        $query = PowerData::query();
+
+        if ($clientRemotikId) {
+            $query->where('client_remotik_id', $clientRemotikId);
+        }
+
+        if ($childClientRemotikId) {
+            $query->orWhere('child_client_remotik_id', $childClientRemotikId);
+        }
+
+        // Add ordering by 'time' column (asc or desc)
+        $query->orderBy('time', $orderBy);
+
+        // Fetch the paginated result, considering the page number
+        $powerData = $query->paginate($perPage, ['*'], 'page', $page);
+
+        // Generate a URL for jumping to a specific page (this URL can be used in the front end)
+        $toPageUrl = fn($pageNum) => $request->fullUrlWithQuery(['page' => $pageNum]);
+
+        // Return the paginated data as a JSON response with `to_page` feature
+        return response()->json([
+            'status' => 'success',
+            'data' => $powerData->items(),
+            'pagination' => [
+                'current_page' => $powerData->currentPage(),
+                'last_page' => $powerData->lastPage(),
+                'total' => $powerData->total(),
+                'per_page' => $powerData->perPage(),
+                'to_page' => [
+                    'first' => $toPageUrl(1), // URL to the first page
+                    'prev' => $powerData->currentPage() > 1 ? $toPageUrl($powerData->currentPage() - 1) : null, // URL to the previous page
+                    'next' => $powerData->hasMorePages() ? $toPageUrl($powerData->currentPage() + 1) : null, // URL to the next page
+                    'last' => $toPageUrl($powerData->lastPage()) // URL to the last page
+                ]
+            ]
+        ]);
+    }
 }
