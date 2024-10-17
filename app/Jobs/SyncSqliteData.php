@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Jobs;
 
 use Illuminate\Bus\Queueable;
@@ -20,6 +21,9 @@ class SyncSqliteData implements ShouldQueue
     protected $nodesToSync;
     protected $nodeApiService;
 
+    /**
+     * Create a new job instance.
+     */
     public function __construct($clientRemotikId, $nodesToSync, NodeApiService $nodeApiService)
     {
         $this->clientRemotikId = $clientRemotikId;
@@ -27,6 +31,9 @@ class SyncSqliteData implements ShouldQueue
         $this->nodeApiService = $nodeApiService;
     }
 
+    /**
+     * Execute the job.
+     */
     public function handle()
     {
         foreach ($this->nodesToSync as $nodeid) {
@@ -40,36 +47,51 @@ class SyncSqliteData implements ShouldQueue
                 if ($response['success']) {
                     $powerData = $response['data'];
 
-                    // Prepare data for batch insert
-                    $insertData = [];
-                    foreach ($powerData as $data) {
-                        // Parse the datetime from API response and convert to MySQL format
+                    // Split into smaller batches to handle large datasets efficiently
+                    $chunks = array_chunk($powerData, 1000); // Adjust batch size as needed
 
-                    $dateTime = Carbon::createFromTimestampMs($data['time'])->toDateTimeString(); // Correct conversion
+                    foreach ($chunks as $batch) {
+                        $insertData = [];
 
-                        // Convert to MySQL-compatible format
+                        foreach ($batch as $data) {
+                            try {
+                                // Parse the time (from milliseconds) and convert to MySQL compatible format
+                                $dateTime = Carbon::createFromTimestampMs($data['time'])->toDateTimeString();
 
-                        $insertData[] = [
-                            'remotik_power_id' => $data['id'],
-                            'time' => $dateTime,  // Use formatted datetime
-                            'nodeid' => $data['nodeid'],
-                            'power' => $data['power'],
-                            'client_remotik_id' => $this->clientRemotikId,
-                            'child_client_remotik_id' => $node->child_client_remotik_id, // Set from node
-                            'is_parent' => $node->is_child_node ? false : true,
-                            'is_child' => $node->is_child_node ? true : false,
-                            'node_name' => $node->node_name, // Set node_name from node data
-                            'created_at' => now(),
-                            'updated_at' => now(),
-                        ];
+                                // Prepare data for batch insert
+                                $insertData[] = [
+                                    'remotik_power_id' => $data['id'],
+                                    'time' => $dateTime, // Use formatted datetime
+                                    'nodeid' => $data['nodeid'],
+                                    'power' => $data['power'],
+                                    'client_remotik_id' => $this->clientRemotikId,
+                                    'child_client_remotik_id' => $node->child_client_remotik_id, // Set from node
+                                    'is_parent' => $node->is_child_node ? false : true,
+                                    'is_child' => $node->is_child_node ? true : false,
+                                    'node_name' => $node->node_name, // Set node_name from node data
+                                    'created_at' => now(),
+                                    'updated_at' => now(),
+                                ];
+                            } catch (\Exception $e) {
+                                // Log any error during processing
+                                Log::error('Error processing nodeid: ' . $data['nodeid'] . ' - ' . $e->getMessage());
+                            }
+                        }
+
+                        try {
+                            // Insert the batch data into the MySQL database
+                            PowerData::insert($insertData);
+                        } catch (\Exception $e) {
+                            // Log errors during insertion
+                            Log::error('Error inserting batch data for nodeid: ' . $nodeid . ' - ' . $e->getMessage());
+                        }
                     }
-
-                    // Insert the power data into the MySQL database
-                    PowerData::insert($insertData);
                 } else {
+                    // Log error if API response is not successful
                     Log::error('Failed to retrieve power data for node ' . $nodeid . ': ' . $response['message']);
                 }
             } else {
+                // Log error if the node is not found in the database
                 Log::error('Node not found for nodeid: ' . $nodeid);
             }
         }
