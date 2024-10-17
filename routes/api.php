@@ -120,6 +120,11 @@ Route::prefix('admin')->group(function () {
         Route::delete('devices/{id}', [DeviceController::class, 'destroy']); // Delete a specific device
 
         Route::get('power-data', [PowerDataController::class, 'getPowerData']); // List all users
+
+
+        Route::get('power-data-sync-log', [PowerDataController::class, 'getAllLogs']);
+
+        Route::get('power-data-sync-log-last', [PowerDataController::class, 'getLastSyncedLog']);
     });
 });
 

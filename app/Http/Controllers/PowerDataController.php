@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Client;
 use App\Models\PowerData;
+use App\Models\PowerDataSyncLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use App\Helpers\ResponseHelper; // Helper for handling responses
@@ -176,5 +177,25 @@ class PowerDataController extends Controller
                 ]
             ]
         ]);
+    }
+
+
+    public function getLastSyncedLog()
+    {
+        $lastLog = PowerDataSyncLog::getLastSyncedLog();
+
+        if ($lastLog) {
+            return ResponseHelper::success($lastLog);
+        }
+
+        return ResponseHelper::error('No logs found.', 404);
+    }
+
+
+    public function getAllLogs()
+    {
+        $logs = PowerDataSyncLog::getAllLogs();
+
+        return ResponseHelper::success($logs);
     }
 }
