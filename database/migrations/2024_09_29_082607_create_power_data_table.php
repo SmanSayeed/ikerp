@@ -23,7 +23,7 @@ return new class extends Migration
             $table->string('child_client_remotik_id')->nullable();
             // Seller client will bill for it
 
-            $table->timestamp('time')->nullable(); // This will hold the timestamp as datetime
+            $table->timestamp('time');
 
             $table->string('nodeid');
 
