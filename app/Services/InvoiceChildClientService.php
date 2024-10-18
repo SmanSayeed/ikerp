@@ -26,6 +26,10 @@ class InvoiceChildClientService
         // Fetch client information
         $clientData = Client::where('client_remotik_id', $child_client_remotik_id)->first();
 
+        if(!$clientData->email){
+            return 'email-not-found';
+        }
+
         if (!$clientData) {
             // Return an empty response or handle it accordingly if client is not found
             return ['data' => [], 'totalInvoiceCost' => 0, 'originalInvoiceCost' => 0, 'client' => null];

@@ -30,11 +30,11 @@ class ChildClientController extends Controller
         $client_remotik_id = $request->input('client_remotik_id');
 
         // Use the NodeApiService to get child clients
-        $response = $this->nodeApiService->getChildClients($client_remotik_id);
+        $response = Client::where('parent_client_id', $client_remotik_id)->get();
 
         // Check if the response is successful
-        if ($response['success']) {
-            return ResponseHelper::success($response['data'], 'Child clients retrieved successfully');
+        if ($response) {
+            return ResponseHelper::success($response, 'Child clients retrieved successfully');
         }
 
         return ResponseHelper::error($response['message'], 500);

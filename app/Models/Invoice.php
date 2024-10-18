@@ -25,7 +25,8 @@ class Invoice extends Model
         'invoice_generated_by_user_type',
         'invoice_generated_by_id',
         'for_child_client_remotik_id',
-        'seller_id'
+        'seller_id',
+        'invoice_generated_by_name'
     ];
 
     /**

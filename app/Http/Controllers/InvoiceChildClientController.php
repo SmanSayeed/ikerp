@@ -71,6 +71,11 @@ class InvoiceChildClientController extends Controller
             // Fetch invoice data from the service
             $invoiceData = $this->invoiceService->getChildClientInvoiceData($from, $to, $child_client_remotik_id,$due_date);
 
+
+            if($invoiceData == 'email-not-found'){
+                return ResponseHelper::error('Client email not found', 400);
+            }
+
             if(!$invoiceData){
                 return ResponseHelper::error('No Client found', 400);
             }
@@ -80,6 +85,8 @@ class InvoiceChildClientController extends Controller
             }
 
             $seller = Seller::where('client_remotik_id',$parent_client_remotik_id)->firstOrFail();
+
+            $user = auth()->user();
 
 
             // Create a new invoice
@@ -101,7 +108,8 @@ class InvoiceChildClientController extends Controller
                 'due_date' => $invoiceData['due_date'],
                 'seller_id' => $seller->id,
                 'invoice_generated_by_user_type'=>'client',
-                'invoice_generated_by_id'=>$parent_client_remotik_id,
+                'invoice_generated_by_id'=>$user->client_remotik_id,
+                'invoice_generated_by_name'=>$user->client_remotik_id,
                 'for_child_client_remotik_id'=>$child_client_remotik_id
             ]);
             // Return the response using ResponseHelper

@@ -33,7 +33,7 @@ class InvoiceController extends Controller
             'client_remotik_id' => 'required|exists:clients,client_remotik_id', // Assuming clients are in a 'clients' table
         ]);
 
-
+        $user = auth()->user();
 
         // Get 'from', 'to' dates, and client_id from the request
         $from = $request->input('from');
@@ -61,6 +61,10 @@ class InvoiceController extends Controller
             // Fetch invoice data from the service
             $invoiceData = $this->invoiceService->getInvoiceData($from, $to, $client_remotik_id,$due_date);
 
+            if($invoiceData == 'email-not-found'){
+                return ResponseHelper::error('Client email not found', 400);
+            }
+
             if(!$invoiceData){
                 return ResponseHelper::error('No Client found', 400);
             }
@@ -86,8 +90,10 @@ class InvoiceController extends Controller
                 'total_cost' => $invoiceData['totalInvoiceCost'],
                 'discount' => $invoiceData['discount'],
                 'due_date' => $invoiceData['due_date'],
-                'invoice_generated_by_id'=>1,
+                'invoice_generated_by_id'=>$user->id,
+                'invoice_generated_by_name'=>$user->name,
                 'invoice_generated_by_user_type'=> 'admin',
+                'for_child_client_remotik_id'=>$client_remotik_id
             ]);
             // Return the response using ResponseHelper
             return ResponseHelper::success(new InvoiceResource($invoice), 'Invoice generated and saved successfully');

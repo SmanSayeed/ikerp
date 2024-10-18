@@ -34,6 +34,7 @@ return new class extends Migration
             $table->string('invoice_generated_by_user_type')->enum('admin', 'client')->default('admin');
 
             $table->string('invoice_generated_by_id'); // if admin get from admin table, if client get from client table
+            $table->string('invoice_generated_by_name'); // if admin get from users name, if client get from client table client_remotik_id
 
             $table->string('for_child_client_remotik_id')->nullable();
 

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Client;
 use Illuminate\Support\Facades\Http;
 
 class NodeApiService
@@ -42,7 +43,7 @@ class NodeApiService
         }
     }
 
-    public function getChildClients(string $username)
+    public function getChildClientsFromNodeJS(string $username)
     {
         try {
             // Call the Node.js API to fetch child clients
@@ -70,6 +71,7 @@ class NodeApiService
             ];
         }
     }
+
 
     public function getPowerData(string $username)
     {
