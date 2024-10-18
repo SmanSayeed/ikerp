@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Helpers\ResponseHelper;
+use App\Http\Resources\InvoiceListResource;
 use App\Http\Resources\InvoiceResource;
 use App\Models\Invoice;
 use App\Models\PowerData;
@@ -343,7 +344,8 @@ class InvoiceChildClientController extends Controller
             $invoices = $query->orderBy('created_at', 'desc')->paginate($perPage); // Change 10 to your desired page size
 
             // Return the success response using ResponseHelper
-            return ResponseHelper::success($invoices);
+            // Return the success response using ResponseHelper
+            return ResponseHelper::success(InvoiceListResource::collection($invoices), 'Invoices retrieved successfully.');
 
         } catch (\Exception $e) {
             // Log the error message for debugging purposes

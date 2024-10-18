@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Helpers\ResponseHelper;
+use App\Http\Resources\InvoiceListResource;
 use App\Http\Resources\InvoiceResource;
 use App\Models\Invoice;
 use App\Models\PowerData;
@@ -319,7 +320,7 @@ class InvoiceController extends Controller
             $invoices = $query->orderBy('created_at', 'desc')->paginate($perPage); // Change 10 to your desired page size
 
             // Return the success response using ResponseHelper
-            return ResponseHelper::success($invoices);
+            return ResponseHelper::success(InvoiceListResource::collection($invoices), 'Invoices retrieved successfully.');
 
         } catch (\Exception $e) {
             // Log the error message for debugging purposes
@@ -397,51 +398,4 @@ class InvoiceController extends Controller
     }
 
 
-
-
-    // public function downloadInvoice(Request $request)
-    // {
-    //     // Get 'from' and 'to' dates from the request
-    //     $from = $request->input('from');
-    //     $to = $request->input('to');
-
-    //     // Define a constant price for each node
-    //     $pricePerNode = 100; // Example constant price
-
-    //     // Query to fetch nodes with power 1
-    //     $query = PowerData::select(DB::raw('client_id, nodeid,node_name, DATE(time) as date, MAX(power) as power_status'))
-    //         ->where('nodeid', '!=', '*')
-    //         ->where('power', '=', 1) // Only where power is 1
-    //         ->groupBy('client_id', 'nodeid','node_name', DB::raw('DATE(time)'));
-
-    //     // Apply date filters
-    //     if ($from && $to) {
-    //         $query->whereDate('time', '>=', $from)
-    //               ->whereDate('time', '<=', $to);
-    //     } elseif ($from) {
-    //         $query->whereDate('time', '=', $from);
-    //     }
-
-    //     // Get the data
-    //     $data = $query->get()->map(function ($item) {
-    //         return [
-    //             'client_id' => $item->client_id,
-    //             'node_name' => $item->node_name,
-    //             'date' => $item->date,
-    //         ];
-    //     });
-
-    //     // Calculate total price
-    //     $totalPrice = count($data) * $pricePerNode;
-
-    //     // Pass data to the view and generate the PDF
-    //     $pdf = PDF::loadView('pdf.invoice', [
-    //         'data' => $data,
-    //         'pricePerNode' => $pricePerNode,
-    //         'totalPrice' => $totalPrice
-    //     ]);
-
-    //     // Download the generated PDF
-    //     return $pdf->download('invoice.pdf');
-    // }
 }
