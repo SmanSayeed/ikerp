@@ -45,7 +45,7 @@ class InvoiceController extends Controller
         $powerClient = PowerData::where('client_remotik_id', $client_remotik_id)->first();
 
 
-        if(!$powerClient) {
+        if (!$powerClient) {
             return null;
         }
 
@@ -60,13 +60,13 @@ class InvoiceController extends Controller
             }
 
             // Fetch invoice data from the service
-            $invoiceData = $this->invoiceService->getInvoiceData($from, $to, $client_remotik_id,$due_date);
+            $invoiceData = $this->invoiceService->getInvoiceData($from, $to, $client_remotik_id, $due_date);
 
-            if($invoiceData == 'email-not-found'){
+            if ($invoiceData == 'email-not-found') {
                 return ResponseHelper::error('Client email not found', 400);
             }
 
-            if(!$invoiceData){
+            if (!$invoiceData) {
                 return ResponseHelper::error('No Client found', 400);
             }
             // Check if data exists to prevent saving empty data
@@ -91,10 +91,10 @@ class InvoiceController extends Controller
                 'total_cost' => $invoiceData['totalInvoiceCost'],
                 'discount' => $invoiceData['discount'],
                 'due_date' => $invoiceData['due_date'],
-                'invoice_generated_by_id'=>$user->id,
-                'invoice_generated_by_name'=>$user->name,
-                'invoice_generated_by_user_type'=> 'admin',
-                'for_child_client_remotik_id'=>$client_remotik_id
+                'invoice_generated_by_id' => $user->id,
+                'invoice_generated_by_name' => $user->name,
+                'invoice_generated_by_user_type' => 'admin',
+                'for_child_client_remotik_id' => $client_remotik_id
             ]);
             // Return the response using ResponseHelper
             return ResponseHelper::success(new InvoiceResource($invoice), 'Invoice generated and saved successfully');
@@ -129,9 +129,14 @@ class InvoiceController extends Controller
 
             // Update the invoice details
             $invoice->update($request->only([
-                'client_name', 'client_email', 'client_phone',
-                'client_address', 'invoice_status', 'total_cost',
-                'discount', 'due_date'
+                'client_name',
+                'client_email',
+                'client_phone',
+                'client_address',
+                'invoice_status',
+                'total_cost',
+                'discount',
+                'due_date'
             ]));
 
             // Return success response with updated invoice
@@ -208,7 +213,7 @@ class InvoiceController extends Controller
             $vip_discount = $invoice->client_vip_discount;
 
             // Pass the invoice data to the Blade view
-            $invoiceData =  [
+            $invoiceData = [
                 'client' => $client,
                 'data' => $deviceUsageDetails,
                 'originalInvoiceCost' => $originalInvoiceCost,
@@ -319,8 +324,18 @@ class InvoiceController extends Controller
             // Get the invoices in descending order, with pagination
             $invoices = $query->orderBy('created_at', 'desc')->paginate($perPage); // Change 10 to your desired page size
 
+
+            $data = InvoiceListResource::collection($invoices)->additional([
+                'meta' => [
+                    'current_page' => $invoices->currentPage(),
+                    'last_page' => $invoices->lastPage(),
+                    'per_page' => $invoices->perPage(),
+                    'total' => $invoices->total(),
+                ]
+            ]);
+
             // Return the success response using ResponseHelper
-            return ResponseHelper::success(InvoiceListResource::collection($invoices), 'Invoices retrieved successfully.');
+            return ResponseHelper::success($data, 'Invoices retrieved successfully.');
 
         } catch (\Exception $e) {
             // Log the error message for debugging purposes
