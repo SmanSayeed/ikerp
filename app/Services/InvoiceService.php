@@ -27,7 +27,6 @@ class InvoiceService
         $clientData = Client::where('client_remotik_id', $client_remotik_id)->first();
 
         if(!$clientData->email){
-
             return 'email-not-found';
         }
 

@@ -34,7 +34,7 @@ class InvoiceController extends Controller
             'client_remotik_id' => 'required|exists:clients,client_remotik_id', // Assuming clients are in a 'clients' table
         ]);
 
-        $user = auth()->user();
+
 
         // Get 'from', 'to' dates, and client_id from the request
         $from = $request->input('from');
@@ -73,6 +73,8 @@ class InvoiceController extends Controller
             if (empty($invoiceData['data'])) {
                 return ResponseHelper::error('No usage data found for this client in the given date range.', 400);
             }
+
+            $user = auth()->user();
 
             // Create a new invoice
             $invoice = Invoice::create([
@@ -325,17 +327,18 @@ class InvoiceController extends Controller
             $invoices = $query->orderBy('created_at', 'desc')->paginate($perPage); // Change 10 to your desired page size
 
 
-            $data = InvoiceListResource::collection($invoices)->additional([
+            $response = [
+                'data' => InvoiceListResource::collection($invoices),
                 'meta' => [
                     'current_page' => $invoices->currentPage(),
                     'last_page' => $invoices->lastPage(),
                     'per_page' => $invoices->perPage(),
                     'total' => $invoices->total(),
-                ]
-            ]);
+                ],
+            ];
 
-            // Return the success response using ResponseHelper
-            return ResponseHelper::success($data, 'Invoices retrieved successfully.');
+            // Return the success response with custom structure
+            return ResponseHelper::success($response, 'Invoices retrieved successfully.');
 
         } catch (\Exception $e) {
             // Log the error message for debugging purposes

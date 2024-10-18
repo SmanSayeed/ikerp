@@ -342,15 +342,18 @@ class InvoiceChildClientController extends Controller
 
             // Get the invoices in descending order, with pagination
             $invoices = $query->orderBy('created_at', 'desc')->paginate($perPage); // Change 10 to your desired page size
-            $data = InvoiceListResource::collection($invoices)->additional([
+            $response = [
+                'data' => InvoiceListResource::collection($invoices),
                 'meta' => [
                     'current_page' => $invoices->currentPage(),
                     'last_page' => $invoices->lastPage(),
                     'per_page' => $invoices->perPage(),
                     'total' => $invoices->total(),
-                ]
-            ]);
-            return ResponseHelper::success($data, 'Invoices retrieved successfully.');
+                ],
+            ];
+
+            // Return the success response with custom structure
+            return ResponseHelper::success($response, 'Invoices retrieved successfully.');
 
         } catch (\Exception $e) {
             // Log the error message for debugging purposes
