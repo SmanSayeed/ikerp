@@ -213,6 +213,8 @@ Route::prefix('client/invoice')->group(function () {
 
 Route::get('/clients/nodejs', [ClientController::class, 'getClientsFromNodeJS']);
 
+Route::get('/clients/array', [ClientController::class, 'getClientsArray']);
+
 
 Route::get('/client/child', [ChildClientController::class, 'getChildClients']);
 

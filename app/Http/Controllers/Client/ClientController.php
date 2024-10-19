@@ -72,7 +72,27 @@ class ClientController extends Controller
 
         // Check if the response is successful
         if ($response['success']) {
-            return ResponseHelper::success($response['data'], 'Child clients retrieved successfully');
+            return ResponseHelper::success($response['data'], 'Clients retrieved successfully');
+        }
+
+        return ResponseHelper::error($response['message'], 500);
+    }
+
+    public function getClientsArray()
+    {
+        // Validate the request to ensure client_remotik_id is provided
+
+        // Use the NodeApiService to get child clients
+        $clients = Client::select('client_remotik_id')->where('is_child', 0)->get();
+         $array = [];
+        foreach($clients as $client) {
+            $array[] = $client->client_remotik_id;
+        }
+        $response = $array;
+
+        // Check if the response is successful
+        if ($response) {
+            return ResponseHelper::success($response, 'Clients retrieved successfully');
         }
 
         return ResponseHelper::error($response['message'], 500);
