@@ -191,15 +191,18 @@ public function syncNodes(Request $request)
                 $query->where('child_client_remotik_id', $request->input('child_client_remotik_id'));
             }
 
-            // Execute the query and fetch the filtered data
-            $nodes = $query->get();
+            // Paginate results
+            $perPage = $request->input('per_page', 10); // Set default items per page
+            $nodes = $query->paginate($perPage);
 
-            // Return success response with filtered nodes
+            // Return success response with filtered nodes and pagination data
             return ResponseHelper::success($nodes, 'Nodes retrieved successfully');
         } catch (\Exception $e) {
             return ResponseHelper::error('An error occurred while fetching nodes: ' . $e->getMessage(), 500);
         }
     }
+
+
 
 
 
