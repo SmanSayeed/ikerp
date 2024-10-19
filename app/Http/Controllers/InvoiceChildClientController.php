@@ -360,6 +360,57 @@ class InvoiceChildClientController extends Controller
         }
     }
 
+    public function invoiceForClient(Request $request, $client_remotik_id)
+    {
+        try {
+            // Start building the query
+            $query = Invoice::query()
+                ->where('client_remotik_id', $client_remotik_id);
+
+            // Determine the number of items per page
+            $perPage = $request->filled('perPage') ? $request->input('perPage') : 10; // Default to 10
+
+            // Apply filters based on request parameters
+            if ($request->filled('invoice_id')) {
+                $query->where('id', $request->input('invoice_id'));
+            }
+
+            if ($request->filled('created_date')) {
+                $query->whereDate('created_at', $request->input('created_date'));
+            }
+
+            if ($request->filled('invoice_status')) {
+                $query->where('invoice_status', $request->input('invoice_status'));
+            }
+
+
+
+            // Get the invoices in descending order, with pagination
+            $invoices = $query->orderBy('created_at', 'desc')->paginate($perPage);
+
+            // Structure the response
+            $response = [
+                'data' => InvoiceListResource::collection($invoices),
+                'pagination' => [
+                    'current_page' => $invoices->currentPage(),
+                    'last_page' => $invoices->lastPage(),
+                    'per_page' => $invoices->perPage(),
+                    'total' => $invoices->total(),
+                ],
+            ];
+
+            // Return the success response with custom structure
+            return ResponseHelper::success($response, 'Invoices retrieved successfully.');
+
+        } catch (\Exception $e) {
+            // Log the error message for debugging purposes
+            \Log::error('Error fetching child client invoices: ' . $e->getMessage());
+
+            // Return the error response using ResponseHelper
+            return ResponseHelper::error('Failed to fetch invoices. Please try again later.', 500);
+        }
+    }
+
 
 
 
