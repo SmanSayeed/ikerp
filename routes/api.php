@@ -167,22 +167,20 @@ Route::get('/sync', [PowerDataController::class, 'syncSqlite']);
 
 Route::prefix('invoice')->group(function () {
 
-    Route::middleware(['auth:sanctum'])->group(function () {
+    Route::get('/download/{invoice_id}', [InvoiceController::class, 'downloadInvoice']);
+
+    Route::middleware(['auth:admin-api'])->group(function () {
 
         Route::post('/generate', [InvoiceController::class, 'generateInvoice']);
 
-        Route::get('/download/{invoice_id}', [InvoiceController::class, 'downloadInvoice']);
+
 
         Route::get('/preview/{invoice_id}', [InvoiceController::class, 'previewInvoice']);
-
         Route::get('/list', [InvoiceController::class, 'getInvoices']);
         Route::get('/view/{invoice_id}', [InvoiceController::class, 'viewInvoice']);
         Route::put('/update/{invoice_id}', [InvoiceController::class, 'updateInvoice']);
         Route::delete('/delete/{invoice_id}', [InvoiceController::class, 'deleteInvoice']);
     });
-
-
-
 
 });
 
@@ -196,6 +194,13 @@ Route::prefix('client/invoice')->group(function () {
 
         /* for child clients */
         Route::get('/child-client-invoice-list/{client_remotik_id}', [InvoiceChildClientController::class, 'getChildClientInvoices']);
+
+        Route::get('/download/{invoice_id}', [InvoiceController::class, 'downloadInvoice']);
+        Route::get('/preview/{invoice_id}', [InvoiceController::class, 'previewInvoice']);
+        Route::get('/list', [InvoiceController::class, 'getInvoices']);
+        Route::get('/view/{invoice_id}', [InvoiceController::class, 'viewInvoice']);
+        Route::put('/update/{invoice_id}', [InvoiceController::class, 'updateInvoice']);
+        Route::delete('/delete/{invoice_id}', [InvoiceController::class, 'deleteInvoice']);
     });
 
 });

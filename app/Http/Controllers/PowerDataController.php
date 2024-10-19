@@ -130,15 +130,20 @@ class PowerDataController extends Controller
             'child_client_remotik_id' => 'nullable|string',
             'orderBy' => 'nullable|string|in:asc,desc',  // order by 'time' column
             'perPage' => 'nullable|integer|in:50,100,200,500', // Pagination limit
-            'page' => 'nullable|integer' // Page number for jumping to a specific page
+            'page' => 'nullable|integer', // Page number for jumping to a specific page
+            'start_time' => 'nullable|date',
+            'end_time' => 'nullable|date',
         ]);
 
         // Fetch query parameters
         $clientRemotikId = $request->input('client_remotik_id');
         $childClientRemotikId = $request->input('child_client_remotik_id');
-        $orderBy = $request->input('orderBy', 'asc'); // Default orderBy is ascending
+        $orderBy = $request->input('orderBy', 'desc'); // Default orderBy is ascending
         $perPage = $request->input('perPage', 50); // Default to 50 items per page
         $page = $request->input('page', 1); // Default to page 1
+
+        $startTime = $request->input('start_time');
+    $endTime = $request->input('end_time');
 
         // Query the power data based on the provided filters
         $query = PowerData::query();
@@ -150,6 +155,15 @@ class PowerDataController extends Controller
         if ($childClientRemotikId) {
             $query->orWhere('child_client_remotik_id', $childClientRemotikId);
         }
+
+        // Filter by time range if provided
+    if ($startTime) {
+        $query->where('time', '>=', $startTime);
+    }
+
+    if ($endTime) {
+        $query->where('time', '<=', $endTime);
+    }
 
         // Add ordering by 'time' column (asc or desc)
         $query->orderBy('time', $orderBy);

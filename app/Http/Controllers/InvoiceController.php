@@ -46,7 +46,7 @@ class InvoiceController extends Controller
 
 
         if (!$powerClient) {
-            return null;
+            return ResponseHelper::error('Client not found', 400);
         }
 
         try {
@@ -266,6 +266,12 @@ class InvoiceController extends Controller
 
     public function downloadInvoice($invoice_id)
     {
+        // $user = auth()->user();
+        // dd($user);
+        // if(!$user){
+        //     return response()->json(['error' => 'Unauthorized'], 401);
+        // }
+
         try {
             // Use the service to fetch the invoice data
             $invoiceData = $this->invoiceService->getPdfInvoiceData($invoice_id);
