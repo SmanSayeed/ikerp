@@ -138,32 +138,33 @@ class PowerDataController extends Controller
         // Fetch query parameters
         $clientRemotikId = $request->input('client_remotik_id');
         $childClientRemotikId = $request->input('child_client_remotik_id');
-        $orderBy = $request->input('orderBy', 'desc'); // Default orderBy is ascending
+        $orderBy = $request->input('orderBy', 'desc'); // Default orderBy is descending
         $perPage = $request->input('perPage', 50); // Default to 50 items per page
         $page = $request->input('page', 1); // Default to page 1
-
         $startTime = $request->input('start_time');
-    $endTime = $request->input('end_time');
+        $endTime = $request->input('end_time');
 
         // Query the power data based on the provided filters
         $query = PowerData::query();
 
+        // Filter by client_remotik_id
         if ($clientRemotikId) {
             $query->where('client_remotik_id', $clientRemotikId);
         }
 
+        // Filter by child_client_remotik_id if provided
         if ($childClientRemotikId) {
-            $query->orWhere('child_client_remotik_id', $childClientRemotikId);
+            $query->where('child_client_remotik_id', $childClientRemotikId);
         }
 
         // Filter by time range if provided
-    if ($startTime) {
-        $query->where('time', '>=', $startTime);
-    }
+        if ($startTime) {
+            $query->where('time', '>=', $startTime);
+        }
 
-    if ($endTime) {
-        $query->where('time', '<=', $endTime);
-    }
+        if ($endTime) {
+            $query->where('time', '<=', $endTime);
+        }
 
         // Add ordering by 'time' column (asc or desc)
         $query->orderBy('time', $orderBy);
@@ -178,10 +179,12 @@ class PowerDataController extends Controller
         return response()->json([
             'status' => 'success',
             'data' => $powerData->items(),
+            'total_data_count' => $powerData->total(),  // Total count of records
             'pagination' => [
                 'current_page' => $powerData->currentPage(),
                 'last_page' => $powerData->lastPage(),
-                'total' => $powerData->total(),
+                'total_pages' => $powerData->lastPage(), // Total number of pages
+                'total' => $powerData->total(), // Total data count
                 'per_page' => $powerData->perPage(),
                 'to_page' => [
                     'first' => $toPageUrl(1), // URL to the first page
@@ -192,6 +195,7 @@ class PowerDataController extends Controller
             ]
         ]);
     }
+
 
 
     public function getLastSyncedLog()
@@ -206,9 +210,12 @@ class PowerDataController extends Controller
     }
 
 
-    public function getAllLogs()
+    public function getAllLogs(Request $request)
     {
-        $logs = PowerDataSyncLog::getAllLogs();
+        $perPage = $request->input('perPage', 10); // Default items per page
+        $currentPage = $request->input('page', 1); // Default to first page
+
+        $logs = PowerDataSyncLog::orderBy('id', 'desc')->paginate($perPage);
 
         return ResponseHelper::success($logs);
     }

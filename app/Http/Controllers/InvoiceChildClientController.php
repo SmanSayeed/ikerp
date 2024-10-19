@@ -299,19 +299,17 @@ class InvoiceChildClientController extends Controller
         }
     }
 
-    public function getChildClientInvoices(Request $request,$client_remotik_id)
+    public function getChildClientInvoices(Request $request, $client_remotik_id)
     {
-
-
         try {
             // Start building the query
-            $query = Invoice::query();
-            $query->where('invoice_generated_by_user_type','client')->where('invoice_generated_by_id',$client_remotik_id);
+            $query = Invoice::query()
+                ->where('invoice_generated_by_user_type', 'client')
+                ->where('invoice_generated_by_id', $client_remotik_id);
 
-            $perPage = 100;
-            if ($request->filled('perPage')) {
-                $perPage = $request->input('perPage');
-            }
+            // Determine the number of items per page
+            $perPage = $request->filled('perPage') ? $request->input('perPage') : 10; // Default to 10
+
             // Apply filters based on request parameters
             if ($request->filled('invoice_id')) {
                 $query->where('id', $request->input('invoice_id'));
@@ -319,10 +317,6 @@ class InvoiceChildClientController extends Controller
 
             if ($request->filled('created_date')) {
                 $query->whereDate('created_at', $request->input('created_date'));
-            }
-
-            if ($request->filled('client_id')) {
-                $query->where('client_id', $request->input('client_id'));
             }
 
             if ($request->filled('invoice_status')) {
@@ -341,10 +335,12 @@ class InvoiceChildClientController extends Controller
             }
 
             // Get the invoices in descending order, with pagination
-            $invoices = $query->orderBy('created_at', 'desc')->paginate($perPage); // Change 10 to your desired page size
+            $invoices = $query->orderBy('created_at', 'desc')->paginate($perPage);
+
+            // Structure the response
             $response = [
                 'data' => InvoiceListResource::collection($invoices),
-                'meta' => [
+                'pagination' => [
                     'current_page' => $invoices->currentPage(),
                     'last_page' => $invoices->lastPage(),
                     'per_page' => $invoices->perPage(),
@@ -357,12 +353,13 @@ class InvoiceChildClientController extends Controller
 
         } catch (\Exception $e) {
             // Log the error message for debugging purposes
-            \Log::error('Error fetching invoices: ' . $e->getMessage());
+            \Log::error('Error fetching child client invoices: ' . $e->getMessage());
 
             // Return the error response using ResponseHelper
             return ResponseHelper::error('Failed to fetch invoices. Please try again later.', 500);
         }
     }
+
 
 
 

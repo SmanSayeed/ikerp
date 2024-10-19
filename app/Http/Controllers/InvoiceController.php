@@ -297,10 +297,11 @@ class InvoiceController extends Controller
             // Start building the query
             $query = Invoice::query();
 
-            $perPage = 100;
+            $perPage = 10;
             if ($request->filled('perPage')) {
                 $perPage = $request->input('perPage');
             }
+
             // Apply filters based on request parameters
             if ($request->filled('invoice_id')) {
                 $query->where('id', $request->input('invoice_id'));
@@ -330,12 +331,11 @@ class InvoiceController extends Controller
             }
 
             // Get the invoices in descending order, with pagination
-            $invoices = $query->orderBy('created_at', 'desc')->paginate($perPage); // Change 10 to your desired page size
-
+            $invoices = $query->orderBy('created_at', 'desc')->paginate($perPage);
 
             $response = [
                 'data' => InvoiceListResource::collection($invoices),
-                'meta' => [
+                'pagination' => [
                     'current_page' => $invoices->currentPage(),
                     'last_page' => $invoices->lastPage(),
                     'per_page' => $invoices->perPage(),
@@ -358,31 +358,8 @@ class InvoiceController extends Controller
 
 
 
-    // public function downloadInvoice(Request $request)
-    // {
-    //     try {
-    //         // Get 'from' and 'to' dates from the request
-    //         $from = $request->input('from');
-    //         $to = $request->input('to');
-    //         $client_id = $request->input('client_id');
-    //         // Fetch invoice data from the service
-    //         $invoiceData = $this->invoiceService->getInvoiceData($from, $to,$client_id);
 
-    //         // Generate the PDF
-    //         $pdf = Pdf::loadView('pdf.invoice', $invoiceData);
 
-    //         // Generate a filename with the current date and time
-    //         $timestamp = Carbon::now()->format('Y-m-d_H-i-s');
-    //         $fileName = "invoice_{$timestamp}.pdf";
-
-    //         // Download the generated PDF
-    //         return $pdf->download($fileName);
-    //     } catch (\Exception $e) {
-    //         // Handle any errors and return a standardized error response
-    //         return ResponseHelper::error('An error occurred while generating the invoice.', 500, ['error' => $e->getMessage()]);
-    //     }
-
-    // }
 
     public function filterPowerUsage(Request $request)
     {
