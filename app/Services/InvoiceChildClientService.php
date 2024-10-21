@@ -74,6 +74,7 @@ class InvoiceChildClientService
 
             // Decode the device usage details from JSON to an array
             $deviceUsageDetails = json_decode($invoice->device_usage_details, true);
+
             $seller = $invoice->seller;
 
             // Prepare the necessary invoice data

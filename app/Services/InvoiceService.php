@@ -74,18 +74,25 @@ class InvoiceService
                 'vip_discount' => $invoice->client_vip_discount,
 
             ];
+            $seller = [];
+            if($invoice->invoice_generated_by_user_type=="admin"){
+                $seller = [
+                    'company_name' => 'DVRS',
+                    'company_address' => 'DVRS Address',
+                    'company_vat_number'=>'3215',
+                    'company_kvk_number'=>
+                    '4567',
+                    'company_iban_number'=>'1234'
+                ];
+
+            }else{
+
+                $seller = $invoice->seller;
+            }
 
             // Decode the device usage details from JSON to an array
             $deviceUsageDetails = json_decode($invoice->device_usage_details, true);
 
-            $seller = [
-                'company_name' => 'DVRS',
-                'company_address' => 'DVRS Address',
-                'company_vat_number'=>'3215',
-                'company_kvk_number'=>
-                '4567',
-                'company_iban_number'=>'1234'
-            ];
 
             // Prepare the necessary invoice data
             $invoiceData = [
