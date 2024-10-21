@@ -21,11 +21,13 @@ return new class extends Migration
             $table->string('client_address')->nullable();
             $table->string('client_is_vip')->nullable();
             $table->string('client_vip_discount')->nullable();
+            $table->string('client_vat_slab')->nullable();
             $table->string('date_range');
             $table->string('due_date')->nullable();
             $table->enum('invoice_status', ['paid', 'unpaid', 'cancelled']);
             $table->text('address')->nullable();
             $table->decimal('discount', 10, 2)->nullable();
+            $table->decimal('vat_slab_amount', 10, 2)->nullable();
             $table->text('device_usage_details')->nullable(); // array of objects json string
             $table->decimal('total_cost', 10, 2);
             $table->decimal('original_cost', 10, 2);

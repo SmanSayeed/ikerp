@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\PowerData;
 use App\Models\Client;
+use App\Traits\InvoiceTrait;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Carbon;
 use App\Models\Invoice;
@@ -12,6 +13,7 @@ use Exception;
 
 class InvoiceChildClientService
 {
+    use InvoiceTrait;
     protected $pricePerNode = 100; // Example constant price
 
     /**
@@ -50,46 +52,10 @@ class InvoiceChildClientService
             $query->whereDate('time', '=', $from);
         }
 
-        // Fetch the data and map it to the desired structure
-        $data = $query->get()->map(function ($item) use ($clientData) {
-            // Calculate totals
-            $originalTotal = $item->days_active * $this->pricePerNode;
-
-            return [
-                'node_name' => $item->node_name,
-                'days_active' => $item->days_active,
-                'price_per_day' => $this->pricePerNode,
-                'original_total' => $originalTotal,
-            ];
-        });
-
-        $discountPercentage = (float) $clientData->vip_discount;
-
-        // Calculate total costs
-        $originalInvoiceCost = $data->sum('original_total');
-        $discount = 0;
-        $totalInvoiceCost = $originalInvoiceCost;
-
-        if($discountPercentage) {
-
-            $totalInvoiceCost = $originalInvoiceCost - $originalInvoiceCost * ($discountPercentage / 100);
-
-            $discount = $originalInvoiceCost - $totalInvoiceCost;
-        }
+        $invoiceData = $this->generateInvoiceWithCalculation($query, $due_date, $clientData, $from, $to);
 
 
-        // Return structured data
-        return [
-            'data' => $data,
-            'originalInvoiceCost' => $originalInvoiceCost,
-            'discount'=>$discount,
-            'totalInvoiceCost' => $totalInvoiceCost,
-            'discountPercentage' => $discountPercentage,
-            'from' => $from,
-            'to' => $to,
-            'client' => $clientData,
-            'due_date'=>$due_date
-        ];
+        return $invoiceData;
     }
 
 
@@ -125,7 +91,9 @@ class InvoiceChildClientService
                 'invoice_generated_by_user_type'=>$invoice->invoice_generated_by_user_type,
                 'invoice_generated_by_id'=>$invoice->parent_client_remotik_id,
                 'for_child_client_remotik_id'=>$invoice->child_client_remotik_id,
-                $seller=>$seller
+                $seller=>$seller,
+                'vat_slab_amount'=>$invoice->vat_slab_amount,
+                'client_vat_slab'=>$invoice->client_vat_slab
             ];
 
             return $invoiceData;
@@ -140,7 +108,7 @@ class InvoiceChildClientService
     {
         try {
             // Load the PDF view with the data
-            $pdf = \Pdf::loadView('pdf.child-client-invoice', $invoiceData);
+            $pdf = \Pdf::loadView('pdf.invoice', $invoiceData);
 
             return $pdf;
         } catch (Exception $e) {

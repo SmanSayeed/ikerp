@@ -37,7 +37,7 @@ class InvoiceChildClientController extends Controller
             'child_client_remotik_id'=>'required|exists:clients,client_remotik_id'
         ]);
 
-       
+
         // Get 'from', 'to' dates, and client_id from the request
         $from = $request->input('from');
 
@@ -102,12 +102,14 @@ class InvoiceChildClientController extends Controller
                 'client_address' => $invoiceData['client']->address,
                 'client_is_vip' => $invoiceData['client']->is_vip,
                 'client_vip_discount' => $invoiceData['client']->vip_discount,
+                'client_vat_slab' => $invoiceData['client']->vat_slab,
                 'date_range' => $from . ' to ' . $to,
                 'invoice_status' => 'unpaid', // Assuming default status is unpaid
                 'device_usage_details' => json_encode($invoiceData['data']), // Store device details as JSON
                 'original_cost' => $invoiceData['originalInvoiceCost'],
                 'total_cost' => $invoiceData['totalInvoiceCost'],
                 'discount' => $invoiceData['discount'],
+                'vat_slab_amount'=>$invoiceData['vat_slab_amount'],
                 'due_date' => $invoiceData['due_date'],
                 'seller_id' => $seller->id,
                 'invoice_generated_by_user_type'=>'client',
@@ -140,6 +142,7 @@ class InvoiceChildClientController extends Controller
             'total_cost' => 'nullable|numeric',
             'discount' => 'nullable|numeric',
             'due_date' => 'nullable|date',
+            'vat_slab' => 'nullable|numeric',
         ]);
 
         try {
@@ -150,7 +153,7 @@ class InvoiceChildClientController extends Controller
             $invoice->update($request->only([
                 'client_name', 'client_email', 'client_phone',
                 'client_address', 'invoice_status', 'total_cost',
-                'discount', 'due_date'
+                'discount', 'due_date','vat_slab'
             ]));
 
             // Return success response with updated invoice
@@ -240,7 +243,9 @@ class InvoiceChildClientController extends Controller
                 'seller_id'=>$invoice->seller_id,
                 'invoice_generated_by_user_type'=>$invoice->invoice_generated_by_user_type,
                 'invoice_generated_by_id'=>$invoice->parent_client_remotik_id,
-                'for_child_client_remotik_id'=>$invoice->child_client_remotik_id
+                'for_child_client_remotik_id'=>$invoice->child_client_remotik_id,
+                'vat_slab_amount' => $invoice->vat_slab_amount,
+                'client_vat_slab'=>$invoice->client_vat_slab
             ];
 
             return ResponseHelper::success($invoiceData, 'Invoice data retrieved.', 200);

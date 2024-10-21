@@ -59,12 +59,12 @@
                 <!-- Shop Information -->
                 <td class="company-details">
                     <img src="{{ asset('images/logo.png') }}" alt="Company Logo">
-                    <h3>Shop Name</h3>
+                    <h3>{{ $seller['company_name'] }}</h3>
                     <p>
-                        Address: Laan van Zuid Hoorn 60, 2289DE Rijswijk<br>
-                        VAT Number (BTW nr.): NL123456789B01<br>
-                        Chamber of Commerce Number (KvK nr.): 123456789<br>
-                        IBAN: NL21ABNA0532484010
+                        Address: {{$seller['company_address']}}<br>
+                        VAT Number (BTW nr.): {{$seller['company_vat_number']}}<br>
+                        Chamber of Commerce Number (KvK nr.): {{$seller['company_kvk_number']}}<br>
+                        IBAN: {{$seller['company_iban_number']}}
                     </p>
                 </td>
             </tr>
@@ -105,6 +105,10 @@
                 <tr class="total">
                     <td colspan="3"> Discount({{$vip_discount ?? 0}}%)</td>
                     <td>€{{ number_format($discount, 2) }}</td>
+                </tr>
+                <tr class="total">
+                    <td colspan="3"> Vat Slab({{$client_vat_slab ?? 0}}%)</td>
+                    <td>€{{ number_format($vat_slab_amount, 2) }}</td>
                 </tr>
                 <tr class="total">
                     {{-- @if($totalInvoiceCost < $originalInvoiceCost) --}}

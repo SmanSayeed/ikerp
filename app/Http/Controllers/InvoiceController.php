@@ -87,17 +87,20 @@ class InvoiceController extends Controller
                 'client_address' => $invoiceData['client']->address,
                 'client_is_vip' => $invoiceData['client']->is_vip,
                 'client_vip_discount' => $invoiceData['client']->vip_discount,
+                'client_vat_slab' => $invoiceData['client']->vat_slab,
                 'date_range' => $from . ' to ' . $to,
                 'invoice_status' => 'unpaid', // Assuming default status is unpaid
                 'device_usage_details' => json_encode($invoiceData['data']), // Store device details as JSON
                 'original_cost' => $invoiceData['originalInvoiceCost'],
                 'total_cost' => $invoiceData['totalInvoiceCost'],
+                'vat_slab_amount'=>$invoiceData['vat_slab_amount'],
                 'discount' => $invoiceData['discount'],
                 'due_date' => $invoiceData['due_date'],
                 'invoice_generated_by_id' => $user->id,
                 'invoice_generated_by_name' => $user->name,
                 'invoice_generated_by_user_type' => 'admin',
-                'for_child_client_remotik_id' => $client_remotik_id
+                'for_child_client_remotik_id' => $client_remotik_id,
+
             ]);
             // Return the response using ResponseHelper
             return ResponseHelper::success(new InvoiceResource($invoice), 'Invoice generated and saved successfully');
@@ -124,6 +127,7 @@ class InvoiceController extends Controller
             'total_cost' => 'nullable|numeric',
             'discount' => 'nullable|numeric',
             'due_date' => 'nullable|date',
+            'vat_slab' => 'nullable|numeric',
         ]);
 
         try {
@@ -139,7 +143,9 @@ class InvoiceController extends Controller
                 'invoice_status',
                 'total_cost',
                 'discount',
-                'due_date'
+                'due_date',
+                'vat_slab'
+
             ]));
 
             // Return success response with updated invoice
@@ -225,7 +231,9 @@ class InvoiceController extends Controller
                 'discount' => $discount,
                 'invoice_id' => $invoice->id,
                 'invoice_date' => $invoice->created_at,
-                'due_date' => $invoice->due_date
+                'due_date' => $invoice->due_date,
+                'vat_slab_amount'=>$invoice->vat_slab_amount,
+                'vat_slab'=>$invoice->client_vat_slab
             ];
 
             return ResponseHelper::success($invoiceData, 'Invoice data retrieved.', 200);

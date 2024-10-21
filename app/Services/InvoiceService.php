@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\PowerData;
 use App\Models\Client;
+use App\Traits\InvoiceTrait;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Carbon;
 use App\Models\Invoice;
@@ -12,6 +13,7 @@ use Exception;
 
 class InvoiceService
 {
+    use InvoiceTrait;
     protected $pricePerNode = 100; // Example constant price
 
     /**
@@ -50,48 +52,12 @@ class InvoiceService
             $query->whereDate('time', '=', $from);
         }
 
-        // Fetch the data and map it to the desired structure
-        $data = $query->get()->map(function ($item) use ($clientData) {
-            // Calculate totals
-            $originalTotal = $item->days_active * $this->pricePerNode;
+        $invoiceData = $this->generateInvoiceWithCalculation($query,$due_date,$clientData,$from,$to);
 
-            return [
-                'node_name' => $item->node_name,
-                'days_active' => $item->days_active,
-                'price_per_day' => $this->pricePerNode,
-                'original_total' => $originalTotal,
-            ];
-        });
-
-        $discountPercentage = (float) $clientData->vip_discount;
-
-        // Calculate total costs
-        $originalInvoiceCost = $data->sum('original_total');
-        $discount = 0;
-        $totalInvoiceCost = $originalInvoiceCost;
-
-        if($discountPercentage) {
-
-            $totalInvoiceCost = $originalInvoiceCost - $originalInvoiceCost * ($discountPercentage / 100);
-
-            $discount = $originalInvoiceCost - $totalInvoiceCost;
-        }
-
-
-
-        // Return structured data
-        return [
-            'data' => $data,
-            'originalInvoiceCost' => $originalInvoiceCost,
-            'discount'=>$discount,
-            'totalInvoiceCost' => $totalInvoiceCost,
-            'discountPercentage' => $discountPercentage,
-            'from' => $from,
-            'to' => $to,
-            'client' => $clientData,
-            'due_date'=>$due_date
-        ];
+        return $invoiceData;
     }
+
+
 
 
 
@@ -106,10 +72,20 @@ class InvoiceService
                 'name' => $invoice->client_name,
                 'address' => $invoice->client_address,
                 'vip_discount' => $invoice->client_vip_discount,
+
             ];
 
             // Decode the device usage details from JSON to an array
             $deviceUsageDetails = json_decode($invoice->device_usage_details, true);
+
+            $seller = [
+                'company_name' => 'DVRS',
+                'company_address' => 'DVRS Address',
+                'company_vat_number'=>'3215',
+                'company_kvk_number'=>
+                '4567',
+                'company_iban_number'=>'1234'
+            ];
 
             // Prepare the necessary invoice data
             $invoiceData = [
@@ -122,6 +98,9 @@ class InvoiceService
                 'invoice_id' => $invoice->id,
                 'invoice_date' => $invoice->created_at,
                 'due_date' => $invoice->due_date,
+                'vat_slab_amount'=>$invoice->vat_slab_amount,
+                'client_vat_slab'=>$invoice->client_vat_slab,
+                'seller'=>$seller
             ];
 
             return $invoiceData;
@@ -144,5 +123,7 @@ class InvoiceService
             throw new Exception('Error generating PDF.');
         }
     }
+
+
 
 }

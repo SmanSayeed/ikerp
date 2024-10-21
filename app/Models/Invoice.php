@@ -26,7 +26,9 @@ class Invoice extends Model
         'invoice_generated_by_id',
         'for_child_client_remotik_id',
         'seller_id',
-        'invoice_generated_by_name'
+        'invoice_generated_by_name',
+        'client_vat_slab',
+        'vat_slab_amount',
     ];
 
     /**
@@ -61,4 +63,6 @@ class Invoice extends Model
     {
         return $this->belongsTo(Seller::class);
     }
+
+
 }
