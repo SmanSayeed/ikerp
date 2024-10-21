@@ -34,6 +34,7 @@ class InvoiceController extends Controller
             'client_remotik_id' => 'required|exists:clients,client_remotik_id', // Assuming clients are in a 'clients' table
         ]);
 
+        // dd($request);
 
 
         // Get 'from', 'to' dates, and client_id from the request

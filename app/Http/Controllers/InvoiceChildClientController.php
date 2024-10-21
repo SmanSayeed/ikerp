@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\DB;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Carbon;
 use Exception;
+use Response;
 
 class InvoiceChildClientController extends Controller
 {
@@ -36,6 +37,7 @@ class InvoiceChildClientController extends Controller
             'child_client_remotik_id'=>'required|exists:clients,client_remotik_id'
         ]);
 
+       
         // Get 'from', 'to' dates, and client_id from the request
         $from = $request->input('from');
 

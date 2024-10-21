@@ -39,7 +39,7 @@ class InvoiceChildClientService
         $query = PowerData::select(DB::raw('client_remotik_id,child_client_remotik_id, nodeid, node_name, COUNT(DISTINCT DATE(time)) as days_active'))
             ->where('nodeid', '!=', '*')
             ->where('power', '=', 1)
-             ->where('child_client_remotik_id', $clientData->child_client_remotik_id)
+             ->where('child_client_remotik_id', $clientData->client_remotik_id)
             ->groupBy( 'client_remotik_id','child_client_remotik_id','nodeid', 'node_name');
 
         // Apply date filters

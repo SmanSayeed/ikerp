@@ -135,6 +135,8 @@ class PowerDataController extends Controller
             'end_time' => 'nullable|date',
         ]);
 
+
+
         // Fetch query parameters
         $clientRemotikId = $request->input('client_remotik_id');
         $childClientRemotikId = $request->input('child_client_remotik_id');
@@ -159,10 +161,14 @@ class PowerDataController extends Controller
 
         // Filter by time range if provided
         if ($startTime) {
+            // Set start time to '00:00:00' if only the date is provided
+            $startTime = Carbon::parse($startTime)->startOfDay();
             $query->where('time', '>=', $startTime);
         }
 
         if ($endTime) {
+            // Set end time to '23:59:59' if only the date is provided
+            $endTime = Carbon::parse($endTime)->endOfDay();
             $query->where('time', '<=', $endTime);
         }
 
